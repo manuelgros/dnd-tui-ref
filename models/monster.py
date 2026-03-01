@@ -51,7 +51,11 @@ class Monster(BaseModel):
     @property
     def type_display(self) -> str:
         if isinstance(self.type, dict):
-            base = self.type["type"]
+            base = self.type.get("type", "")
+            if isinstance(base, dict):
+                # e.g. {"choose": ["celestial", "fiend"]}
+                choices = base.get("choose", [])
+                base = "/".join(choices) if choices else "unknown"
             tags = self.type.get("tags", [])
             if tags:
                 return f"{base} ({', '.join(tags)})"

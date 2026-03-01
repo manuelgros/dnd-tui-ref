@@ -76,6 +76,23 @@ class MonstersView(BaseListView):
                 return str(entry.get("ac", "?"))
         return "?"
 
+    def _base_types(self, monster: Monster) -> list:
+        """Return a list of lowercase type strings for filter matching.
+
+        Handles plain strings, dicts with a 'type' key (string or choose-dict).
+        e.g. Empyrean: {"type": {"choose": ["celestial","fiend"]}} → ["celestial","fiend"]
+        """
+        t = monster.type
+        if isinstance(t, str):
+            return [t.lower()]
+        if isinstance(t, dict):
+            inner = t.get("type", "")
+            if isinstance(inner, str):
+                return [inner.lower()]
+            if isinstance(inner, dict):
+                return [c.lower() for c in inner.get("choose", [])]
+        return []
+
     def on_select_changed(self, event: Select.Changed) -> None:
         self.apply_filters()
 
@@ -87,12 +104,9 @@ class MonstersView(BaseListView):
             filtered = [m for m in filtered if m.cr_display == cr_select.value]
 
         type_select = self.query_one("#type_filter", Select)
-        if type_select.value is not None:
-            filtered = [
-                m for m in filtered
-                if (m.type if isinstance(m.type, str) else m.type.get("type", "")).lower()
-                == type_select.value
-            ]
+        if type_select.value is not None and isinstance(type_select.value, str):
+            selected = type_select.value
+            filtered = [m for m in filtered if selected in self._base_types(m)]
 
         size_select = self.query_one("#size_filter", Select)
         if size_select.value is not None:
