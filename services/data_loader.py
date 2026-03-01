@@ -121,6 +121,7 @@ class DataLoader:
                             cr=monster_data["cr"],
                             save=monster_data.get("save"),
                             skill=monster_data.get("skill"),
+                            vulnerable=monster_data.get("vulnerable"),
                             resist=monster_data.get("resist"),
                             immune=monster_data.get("immune"),
                             conditionImmune=monster_data.get("conditionImmune"),
@@ -128,7 +129,10 @@ class DataLoader:
                             languages=monster_data.get("languages"),
                             trait=monster_data.get("trait"),
                             action=monster_data.get("action"),
+                            bonus=monster_data.get("bonus"),
+                            reaction=monster_data.get("reaction"),
                             legendary=monster_data.get("legendary"),
+                            spellcasting=monster_data.get("spellcasting"),
                         )
                     )
 

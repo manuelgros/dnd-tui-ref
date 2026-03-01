@@ -34,9 +34,13 @@ class Monster(BaseModel):
     conditionImmune: Optional[List[Any]] = None
     senses: Optional[List[str]] = None
     languages: Optional[List[str]] = None
+    vulnerable: Optional[List[Any]] = None
     trait: Optional[List[Dict[str, Any]]] = None
     action: Optional[List[Dict[str, Any]]] = None
+    bonus: Optional[List[Dict[str, Any]]] = None
+    reaction: Optional[List[Dict[str, Any]]] = None
     legendary: Optional[List[Dict[str, Any]]] = None
+    spellcasting: Optional[List[Dict[str, Any]]] = None
 
     @property
     def cr_display(self) -> str:
