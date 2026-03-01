@@ -5,7 +5,7 @@ from textual.binding import Binding
 from textual.widgets import Footer, Header, Input, Static, TabbedContent, TabPane
 
 from services import DataLoader
-from views import SpellsView, MonstersView
+from views import SpellsView, MonstersView, ItemsView
 
 
 class DnDReferenceApp(App):
@@ -36,7 +36,7 @@ class DnDReferenceApp(App):
             with TabPane("Monsters", id="monsters"):
                 yield MonstersView(self.data_loader.monsters)
             with TabPane("Items", id="items"):
-                yield Static("Items View Coming Soon")
+                yield ItemsView(self.data_loader.items)
             with TabPane("Feats", id="feats"):
                 yield Static("Feats View Coming Soon")
             with TabPane("Conditions", id="conditions"):

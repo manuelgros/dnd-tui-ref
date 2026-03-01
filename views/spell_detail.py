@@ -6,6 +6,7 @@ from textual.screen import Screen
 from textual.widgets import Button, Static
 
 from models import Spell
+from services import SOURCE_FULL
 
 
 class SpellDetailScreen(Screen):
@@ -34,7 +35,7 @@ class SpellDetailScreen(Screen):
                 yield Static(
                     f"\n[dim]Classes: {', '.join(self.spell.classes_list)}[/dim]"
                 )
-                yield Static(f"[dim]Source: {self.spell.source}[/dim]")
+                yield Static(f"[dim]Source: {SOURCE_FULL.get(self.spell.source, self.spell.source)}[/dim]")
 
             yield Button("Back", id="back")
 

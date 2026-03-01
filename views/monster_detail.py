@@ -7,6 +7,7 @@ from textual.screen import Screen
 from textual.widgets import Button, Static
 
 from models import Monster
+from services import SOURCE_FULL
 
 # Section display order and labels
 _SECTIONS: List[Tuple[str, str]] = [
@@ -85,7 +86,7 @@ class MonsterDetailScreen(Screen):
                         yield Static(self._format_entries(entries))
                         yield Static("")
 
-                yield Static(f"[dim]Source: {m.source}[/dim]")
+                yield Static(f"[dim]Source: {SOURCE_FULL.get(m.source, m.source)}[/dim]")
 
             yield Button("Back", id="back")
 

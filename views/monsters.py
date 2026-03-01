@@ -1,18 +1,11 @@
 from textual.containers import Container, Horizontal
 from textual.widgets import Input, Label, ListItem, Select
 
-from services import SearchService
+from services import SearchService, SOURCE_SHORT
 
 from models import Monster
 from .base import BaseListView
 from .monster_detail import MonsterDetailScreen
-
-
-# Maps raw source codes → display abbreviations shown in list and filter
-SOURCE_LABELS: dict = {
-    "XMM": "MM'25",
-    "BGG": "BGG",
-}
 
 CR_OPTIONS = [
     ("All CRs", None),
@@ -55,8 +48,8 @@ SIZE_OPTIONS = [
 
 SOURCE_OPTIONS = [
     ("All Sources", None),
-    ("MM'25", "XMM"),
-    ("BGG", "BGG"),
+    ("Monster Manual (2025)", "XMM"),
+    ("Bigby Presents: Glory of the Giants", "BGG"),
 ]
 
 
@@ -75,7 +68,7 @@ class MonstersView(BaseListView):
     def create_list_item(self, monster: Monster) -> ListItem:
         ac = self._get_ac(monster)
         hp = monster.hp.get("average", "?")
-        source_label = SOURCE_LABELS.get(monster.source, monster.source)
+        source_label = SOURCE_SHORT.get(monster.source, monster.source)
         label = (
             f"{monster.name} • {monster.size_display} {monster.type_display}"
             f" • CR {monster.cr_display} • AC {ac} HP {hp} • {source_label}"
