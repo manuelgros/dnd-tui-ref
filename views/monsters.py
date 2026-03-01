@@ -8,6 +8,12 @@ from .base import BaseListView
 from .monster_detail import MonsterDetailScreen
 
 
+# Maps raw source codes → display abbreviations shown in list and filter
+SOURCE_LABELS: dict = {
+    "XMM": "MM'25",
+    "BGG": "BGG",
+}
+
 CR_OPTIONS = [
     ("All CRs", None),
     ("0", "0"), ("1/8", "1/8"), ("1/4", "1/4"), ("1/2", "1/2"),
@@ -47,6 +53,12 @@ SIZE_OPTIONS = [
     ("Gargantuan", "G"),
 ]
 
+SOURCE_OPTIONS = [
+    ("All Sources", None),
+    ("MM'25", "XMM"),
+    ("BGG", "BGG"),
+]
+
 
 class MonstersView(BaseListView):
     """Monsters list with filters."""
@@ -56,15 +68,17 @@ class MonstersView(BaseListView):
             Select(options=CR_OPTIONS, id="cr_filter", allow_blank=False, value=None),
             Select(options=TYPE_OPTIONS, id="type_filter", allow_blank=False, value=None),
             Select(options=SIZE_OPTIONS, id="size_filter", allow_blank=False, value=None),
+            Select(options=SOURCE_OPTIONS, id="source_filter", allow_blank=False, value=None),
             id="filters",
         )
 
     def create_list_item(self, monster: Monster) -> ListItem:
         ac = self._get_ac(monster)
         hp = monster.hp.get("average", "?")
+        source_label = SOURCE_LABELS.get(monster.source, monster.source)
         label = (
             f"{monster.name} • {monster.size_display} {monster.type_display}"
-            f" • CR {monster.cr_display} • AC {ac} HP {hp}"
+            f" • CR {monster.cr_display} • AC {ac} HP {hp} • {source_label}"
         )
         return ListItem(Label(label))
 
@@ -98,6 +112,10 @@ class MonstersView(BaseListView):
 
     def apply_filters(self) -> None:
         filtered = self.all_items
+
+        source_select = self.query_one("#source_filter", Select)
+        if source_select.value is not None and isinstance(source_select.value, str):
+            filtered = [m for m in filtered if m.source == source_select.value]
 
         cr_select = self.query_one("#cr_filter", Select)
         if cr_select.value is not None:

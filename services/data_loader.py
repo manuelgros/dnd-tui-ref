@@ -5,7 +5,7 @@ from typing import List, Optional
 from models import Spell, Monster, Item, Feat, Condition, cr_to_float
 
 
-ALLOWED_SOURCES = {"XPHB", "XDMG", "XMM", "XGE", "TCE"}
+ALLOWED_SOURCES = {"XPHB", "XDMG", "XMM", "XGE", "TCE", "BGG"}
 
 
 class DataLoader:
@@ -87,9 +87,28 @@ class DataLoader:
 
         return sorted(spells, key=lambda s: (s.level, s.name))
 
+    def _load_legendary_groups(self) -> dict:
+        """Return a (name, source) → group dict from legendarygroups.json."""
+        path = self.data_dir / "bestiary" / "legendarygroups.json"
+        if not path.exists():
+            return {}
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return {
+            (g["name"], g["source"]): g
+            for g in data.get("legendaryGroup", [])
+            if "_copy" not in g
+        }
+
+    def _resolve_legendary_group(self, ref, groups: dict):
+        if not ref:
+            return None
+        return groups.get((ref["name"], ref["source"]))
+
     def _load_monsters(self) -> List[Monster]:
         monsters: List[Monster] = []
         bestiary_dir = self.data_dir / "bestiary"
+        legendary_groups = self._load_legendary_groups()
 
         for file_path in sorted(bestiary_dir.glob("bestiary-*.json")):
             with open(file_path, "r", encoding="utf-8") as f:
@@ -133,14 +152,13 @@ class DataLoader:
                             reaction=monster_data.get("reaction"),
                             legendary=monster_data.get("legendary"),
                             spellcasting=monster_data.get("spellcasting"),
+                            legendary_group_data=self._resolve_legendary_group(
+                                monster_data.get("legendaryGroup"), legendary_groups
+                            ),
                         )
                     )
 
-        def _cr_value(monster: Monster) -> float:
-            cr_raw = monster.cr["cr"] if isinstance(monster.cr, dict) else monster.cr
-            return cr_to_float(str(cr_raw))
-
-        return sorted(monsters, key=lambda m: (_cr_value(m), m.name))
+        return sorted(monsters, key=lambda m: m.name)
 
     def _load_items(self) -> List[Item]:
         items: List[Item] = []

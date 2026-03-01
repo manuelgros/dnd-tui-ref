@@ -74,6 +74,17 @@ class MonsterDetailScreen(Screen):
                         yield Static(text)
                         yield Static("")
 
+                grp = m.legendary_group_data or {}
+                for grp_key, grp_label in [
+                    ("lairActions",    "Lair Actions"),
+                    ("regionalEffects", "Regional Effects"),
+                ]:
+                    entries = grp.get(grp_key)
+                    if entries:
+                        yield Static(f"[bold]{grp_label}[/bold]")
+                        yield Static(self._format_entries(entries))
+                        yield Static("")
+
                 yield Static(f"[dim]Source: {m.source}[/dim]")
 
             yield Button("Back", id="back")
@@ -204,12 +215,12 @@ class MonsterDetailScreen(Screen):
         return ", ".join(parts) if parts else "—"
 
     def _format_feature(self, feature: Dict[str, Any]) -> str:
-        name = feature.get("name", "")
+        name = self._strip_tags(feature.get("name", ""))
         body = self._format_entries(feature.get("entries", []))
         return f"[bold]{name}.[/bold] {body}" if name else body
 
     def _format_spellcasting(self, sc: Dict[str, Any]) -> str:
-        name = sc.get("name", "Spellcasting")
+        name = self._strip_tags(sc.get("name", "Spellcasting"))
         header_parts = [self._strip_tags(e) for e in sc.get("headerEntries", [])]
         header = " ".join(header_parts)
 
@@ -246,12 +257,24 @@ class MonsterDetailScreen(Screen):
                 e_type = entry.get("type")
                 if e_type == "list":
                     return "\n".join(f"- {render(e)}" for e in entry.get("items", []))
+                if e_type == "item":
+                    # Named item: {"type":"item","name":"...","entry":"..."} or "entries":[...]
+                    name = entry.get("name", "")
+                    if "entries" in entry:
+                        body = "\n".join(render(e) for e in entry["entries"])
+                    else:
+                        raw = entry.get("entry", "")
+                        body = self._strip_tags(raw) if isinstance(raw, str) else render(raw)
+                    return f"[bold]{name}.[/bold] {body}" if name else body
                 if e_type in {"entries", "section"}:
                     header = entry.get("name")
                     body = "\n".join(render(e) for e in entry.get("entries", []))
                     return f"[bold]{header}[/bold]\n{body}" if header else body
                 if "entries" in entry:
                     return "\n".join(render(e) for e in entry["entries"])
+                if "entry" in entry:
+                    raw = entry["entry"]
+                    return self._strip_tags(raw) if isinstance(raw, str) else render(raw)
                 return str(entry)
             if isinstance(entry, list):
                 return "\n".join(render(e) for e in entry)

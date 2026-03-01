@@ -41,6 +41,7 @@ class Monster(BaseModel):
     reaction: Optional[List[Dict[str, Any]]] = None
     legendary: Optional[List[Dict[str, Any]]] = None
     spellcasting: Optional[List[Dict[str, Any]]] = None
+    legendary_group_data: Optional[Dict[str, Any]] = None
 
     @property
     def cr_display(self) -> str:

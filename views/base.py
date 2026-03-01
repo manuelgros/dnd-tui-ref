@@ -1,9 +1,10 @@
 from typing import Any, List
 
+from textual import events
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
-from textual.widgets import Input, Label, ListItem, ListView
+from textual.widgets import Checkbox, Input, Label, ListItem, ListView, Select
 
 from services import SearchService
 
@@ -60,6 +61,24 @@ class BaseListView(Vertical):
         if 0 <= index < len(self.filtered_items):
             item = self.filtered_items[index]
             self.show_detail(item)
+
+    def on_key(self, event: events.Key) -> None:
+        """Navigate between filter Selects with left/right arrow keys."""
+        if event.key not in ("left", "right"):
+            return
+        focused = self.app.focused
+        if not isinstance(focused, (Select, Checkbox)):
+            return
+        if getattr(focused, "_expanded", False):
+            return  # let the open dropdown handle its own arrow keys
+        filter_widgets = list(self.query("#filters Select, #filters Checkbox"))
+        if focused not in filter_widgets:
+            return
+        idx = filter_widgets.index(focused)
+        new_idx = idx + (1 if event.key == "right" else -1)
+        if 0 <= new_idx < len(filter_widgets):
+            filter_widgets[new_idx].focus()
+            event.stop()
 
     def show_detail(self, item: Any) -> None:
         """Override in subclass to push a detail screen."""
