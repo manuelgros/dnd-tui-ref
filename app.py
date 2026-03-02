@@ -26,6 +26,7 @@ class DnDReferenceApp(App):
         Binding("ctrl+6", "switch_tab('conditions')", "Conditions", show=False),
         Binding("ctrl+7", "switch_tab('settings')", "Settings", show=False),
         Binding("/", "focus_search", "Search", show=True),
+        Binding("escape", "quick_search", "Quick Search", show=False),
     ]
 
     def __init__(self) -> None:
@@ -93,6 +94,14 @@ class DnDReferenceApp(App):
             "feat": feats,
             "condition": conditions,
         })
+
+    def action_quick_search(self) -> None:
+        """Switch to Quick Search and focus the search input."""
+        self.query_one(TabbedContent).active = "quick"
+        try:
+            self.query_one(QuickSearchView).query_one("#search", Input).focus()
+        except Exception:
+            pass
 
     def action_switch_tab(self, tab_id: str) -> None:
         """Switch to specified tab."""

@@ -1,6 +1,7 @@
 import re
 from typing import Any, List
 
+from textual import events
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer, Vertical
 from textual.screen import Screen
@@ -98,6 +99,11 @@ class ConditionDetailScreen(Screen):
         for row in rows:
             lines.append("  ".join(str(cell) for cell in row))
         return "\n".join(lines)
+
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "escape":
+            self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "back":

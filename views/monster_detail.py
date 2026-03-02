@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, Generator, List, Tuple
 
 from rich.text import Text
+from textual import events
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer, Vertical
 from textual.screen import Screen
@@ -315,6 +316,11 @@ class MonsterDetailScreen(Screen):
             return str(entry)
 
         return "\n\n".join(render(e) for e in entries)
+
+
+    def on_key(self, event: events.Key) -> None:
+        if event.key == "escape":
+            self.app.pop_screen()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "back":
