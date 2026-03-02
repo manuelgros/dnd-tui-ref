@@ -48,14 +48,12 @@ class DnDReferenceApp(App):
         self.query_one(TabbedContent).active = tab_id
 
     def action_focus_search(self) -> None:
-        """Focus the search input in current tab (currently spells only)."""
+        """Focus the search input in current tab."""
         tabbed = self.query_one(TabbedContent)
-        if tabbed.active == "spells":
-            pane = tabbed.get_pane("spells")
-            try:
-                search = pane.query_one("#search", Input)
-            except Exception:
-                return
-            search.focus()
+        try:
+            pane = tabbed.get_pane(tabbed.active)
+            pane.query_one("#search", Input).focus()
+        except Exception:
+            pass
 
 

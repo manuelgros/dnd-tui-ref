@@ -69,22 +69,30 @@ class BaseListView(Vertical):
             self.show_detail(item)
 
     def on_key(self, event: events.Key) -> None:
-        """Navigate between filter Selects with left/right arrow keys."""
-        if event.key not in ("left", "right"):
-            return
         focused = self.app.focused
-        if not isinstance(focused, (Select, Checkbox)):
-            return
-        if getattr(focused, "_expanded", False):
-            return  # let the open dropdown handle its own arrow keys
-        filter_widgets = list(self.query("#filters Select, #filters Checkbox"))
-        if focused not in filter_widgets:
-            return
-        idx = filter_widgets.index(focused)
-        new_idx = idx + (1 if event.key == "right" else -1)
-        if 0 <= new_idx < len(filter_widgets):
-            filter_widgets[new_idx].focus()
-            event.stop()
+
+        if event.key in ("left", "right"):
+            # Arrow keys navigate between filter widgets
+            if not isinstance(focused, (Select, Checkbox)):
+                return
+            if getattr(focused, "_expanded", False):
+                return  # let the open dropdown handle its own arrow keys
+            filter_widgets = list(self.query("#filters Select, #filters Checkbox"))
+            if focused not in filter_widgets:
+                return
+            idx = filter_widgets.index(focused)
+            new_idx = idx + (1 if event.key == "right" else -1)
+            if 0 <= new_idx < len(filter_widgets):
+                filter_widgets[new_idx].focus()
+                event.stop()
+
+        elif event.key == "tab":
+            filter_widgets = list(self.query("#filters Select, #filters Checkbox"))
+            if isinstance(focused, (Select, Checkbox)) and focused in filter_widgets:
+                # Tab from filter row → jump straight to list
+                self.query_one("#results", ListView).focus()
+                event.stop()
+            # Tab from list: let Textual's default behavior take over → goes to tab bar
 
     def show_detail(self, item: Any) -> None:
         """Override in subclass to push a detail screen."""
