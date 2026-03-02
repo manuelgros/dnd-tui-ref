@@ -70,7 +70,7 @@ class MonsterDetailScreen(Screen):
                 yield Static("")
 
                 for section_label, items in self._build_sections(m):
-                    yield Static(f"[bold]{section_label}[/bold]")
+                    yield Static(f"[bold yellow]{section_label}[/bold yellow]")
                     for text in items:
                         yield Static(text)
                         yield Static("")
@@ -82,7 +82,7 @@ class MonsterDetailScreen(Screen):
                 ]:
                     entries = grp.get(grp_key)
                     if entries:
-                        yield Static(f"[bold]{grp_label}[/bold]")
+                        yield Static(f"[bold yellow]{grp_label}[/bold yellow]")
                         yield Static(self._format_entries(entries))
                         yield Static("")
 

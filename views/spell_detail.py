@@ -20,11 +20,11 @@ class SpellDetailScreen(Screen):
     def compose(self) -> ComposeResult:
         with Vertical():
             yield Static(f"[bold]{self.spell.name}[/bold]", classes="title")
-            yield Static(f"{self.spell.level_text} {self.spell.school_full}")
-            yield Static(f"Casting Time: {self.format_time(self.spell.time)}")
-            yield Static(f"Range: {self.format_range(self.spell.range)}")
-            yield Static(f"Components: {self.format_components(self.spell.components)}")
-            yield Static(f"Duration: {self.format_duration(self.spell.duration)}")
+            yield Static(f"[bold]{self.spell.level_text} {self.spell.school_full}[/bold]")
+            yield Static(f"[bold]Casting Time:[/bold] {self.format_time(self.spell.time)}")
+            yield Static(f"[bold]Range:[/bold] {self.format_range(self.spell.range)}")
+            yield Static(f"[bold]Components:[/bold] {self.format_components(self.spell.components)}")
+            yield Static(f"[bold]Duration:[/bold] {self.format_duration(self.spell.duration)}")
 
             with ScrollableContainer():
                 yield Static(self.format_entries(self.spell.entries))

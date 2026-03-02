@@ -17,20 +17,29 @@ class ItemDetailScreen(Screen):
         super().__init__()
         self.item = item
 
+    _RARITY_COLORS = {
+        "Uncommon": "green", "Rare": "cyan",
+        "Very Rare": "magenta", "Legendary": "gold1", "Artifact": "red",
+    }
+
+    def _rarity_colored(self, rarity: str) -> str:
+        color = self._RARITY_COLORS.get(rarity)
+        return f"[{color}]{rarity}[/{color}]" if color else rarity
+
     def compose(self) -> ComposeResult:
         it = self.item
         with Vertical():
             yield Static(f"[bold]{it.name}[/bold]", classes="title")
-            yield Static(it.type_display)
+            yield Static(f"[bold]{it.type_display}[/bold]")
             if it.requires_str:
-                yield Static(f"Applies to: {it.requires_str}")
-            yield Static(f"Rarity: {it.rarity_display}")
+                yield Static(f"[bold]Applies to:[/bold] {it.requires_str}")
+            yield Static(f"[bold]Rarity:[/bold] {self._rarity_colored(it.rarity_display)}")
             if it.requires_attunement:
-                yield Static(it.attunement_display)
+                yield Static(f"[italic]{it.attunement_display}[/italic]")
             if it.weight is not None:
-                yield Static(f"Weight: {it.weight} lb.")
+                yield Static(f"[bold]Weight:[/bold] {it.weight} lb.")
             if it.value is not None:
-                yield Static(f"Value: {self._format_value(it.value)}")
+                yield Static(f"[bold]Value:[/bold] {self._format_value(it.value)}")
             yield Static("")
 
             with ScrollableContainer():

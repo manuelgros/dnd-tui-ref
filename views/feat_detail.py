@@ -36,13 +36,13 @@ class FeatDetailScreen(Screen):
         with Vertical():
             yield Static(f"[bold]{ft.name}[/bold]", classes="title")
             if ft.category:
-                yield Static(CATEGORY_LABELS.get(ft.category, ft.category))
+                yield Static(f"[bold]{CATEGORY_LABELS.get(ft.category, ft.category)}[/bold]")
             if ft.repeatable:
-                yield Static("Repeatable")
+                yield Static("[dim]Repeatable[/dim]")
             if ft.has_prerequisite:
-                yield Static(f"Prerequisite: {self._format_prereq(ft.prerequisite)}")
+                yield Static(f"[bold]Prerequisite:[/bold] {self._format_prereq(ft.prerequisite)}")
             if ft.ability:
-                yield Static(f"Ability Score Increase: {self._format_ability(ft.ability)}")
+                yield Static(f"[bold]Ability Score Increase:[/bold] {self._format_ability(ft.ability)}")
             yield Static("")
 
             with ScrollableContainer():

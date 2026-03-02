@@ -18,6 +18,23 @@ TabPane {
 }
 
 Static {
-    content-align: center middle;
+    content-align: left top;
 }
 
+/* Detail screen title: centered, bold, accent colour */
+.title {
+    content-align: center middle;
+    text-style: bold;
+    color: $accent;
+    padding: 0 0 1 0;
+}
+
+/* Results counter above list */
+#results_count {
+    color: $text-muted;
+}
+
+/* Shortcut legend in Quick Search */
+#shortcuts {
+    color: $text-muted;
+}

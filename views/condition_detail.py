@@ -21,7 +21,7 @@ class ConditionDetailScreen(Screen):
         c = self.condition
         with Vertical():
             yield Static(f"[bold]{c.name}[/bold]", classes="title")
-            yield Static("Condition")
+            yield Static("[bold]Condition[/bold]")
             yield Static("")
             with ScrollableContainer():
                 if c.entries:
