@@ -40,6 +40,8 @@ SOURCE_OPTIONS = _SOURCE_OPTIONS
 class ItemsView(BaseListView):
     """Items list with filters."""
 
+    result_noun = "Items"
+
     def render_filters(self) -> Container:
         return Horizontal(
             Select(options=TYPE_OPTIONS, id="type_filter", allow_blank=False, value=None),

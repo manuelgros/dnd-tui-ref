@@ -56,6 +56,8 @@ SOURCE_OPTIONS = [
 class MonstersView(BaseListView):
     """Monsters list with filters."""
 
+    result_noun = "Monsters"
+
     def render_filters(self) -> Container:
         return Horizontal(
             Select(options=CR_OPTIONS, id="cr_filter", allow_blank=False, value=None),

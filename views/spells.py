@@ -11,6 +11,7 @@ from .spell_detail import SpellDetailScreen
 class SpellsView(BaseListView):
     """Spells list with filters."""
 
+    result_noun = "Spells"
     def render_filters(self) -> Container:
         # Only show class filter if spell data includes class info
         has_class_data = any(s.classes_list for s in self.all_items)

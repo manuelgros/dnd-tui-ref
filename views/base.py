@@ -4,13 +4,15 @@ from textual import events
 from textual.app import ComposeResult
 from textual.containers import Container, Vertical
 from textual.reactive import reactive
-from textual.widgets import Checkbox, Input, Label, ListItem, ListView, Select
+from textual.widgets import Checkbox, Input, Label, ListItem, ListView, Select, Static
 
 from services import SearchService
 
 
 class BaseListView(Vertical):
     """Base class for all list views (Spells, Monsters, etc.)."""
+
+    result_noun: str = "Results"
 
     items = reactive(list[Any]())
     filtered_items = reactive(list[Any]())
@@ -24,6 +26,7 @@ class BaseListView(Vertical):
     def compose(self) -> ComposeResult:
         yield Input(placeholder="Search...", id="search")
         yield self.render_filters()
+        yield Static("", id="results_count")
         yield ListView(id="results")
 
     def on_mount(self) -> None:
@@ -50,6 +53,9 @@ class BaseListView(Vertical):
         list_view.clear()
         for item in self.filtered_items:
             list_view.append(self.create_list_item(item))
+        self.query_one("#results_count", Static).update(
+            f"{self.result_noun} shown: {len(self.filtered_items)} / {len(self.all_items)}"
+        )
 
     def create_list_item(self, item: Any) -> ListItem:
         """Override in subclass to create item representation."""
