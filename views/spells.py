@@ -42,6 +42,17 @@ class SpellsView(BaseListView):
             ),
             Checkbox("Concentration", id="concentration_filter"),
             Checkbox("Ritual", id="ritual_filter"),
+            Select(
+                options=[
+                    ("Sort: Name", "name"),
+                    ("Sort: Level", "level"),
+                    ("Sort: School", "school"),
+                    ("Sort: Source", "source"),
+                ],
+                id="sort_filter",
+                allow_blank=False,
+                value="name",
+            ),
         ]
         if has_class_data:
             filters.insert(
@@ -125,6 +136,17 @@ class SpellsView(BaseListView):
         ritual_check = self.query_one("#ritual_filter", Checkbox)
         if ritual_check.value:
             filtered = [s for s in filtered if s.ritual]
+
+        sort_select = self.query_one("#sort_filter", Select)
+        sort_key = sort_select.value or "name"
+        if sort_key == "level":
+            filtered = sorted(filtered, key=lambda s: (s.level, s.name.lower()))
+        elif sort_key == "school":
+            filtered = sorted(filtered, key=lambda s: (s.school_full.lower(), s.name.lower()))
+        elif sort_key == "source":
+            filtered = sorted(filtered, key=lambda s: (s.source.lower(), s.name.lower()))
+        else:
+            filtered = sorted(filtered, key=lambda s: s.name.lower())
 
         self.items = filtered
         # Apply current search on the filtered list so list shows filter + search

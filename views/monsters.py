@@ -5,7 +5,7 @@ from textual.widgets import Input, Label, ListItem, Select
 
 from services import SearchService, SOURCE_SHORT
 
-from models import Monster
+from models import Monster, cr_to_float
 from .base import BaseListView
 from .monster_detail import MonsterDetailScreen
 
@@ -85,6 +85,17 @@ class MonstersView(BaseListView):
                 allow_blank=False,
                 value=None,
             ),
+            Select(
+                options=[
+                    ("Sort: Name", "name"),
+                    ("Sort: CR", "cr"),
+                    ("Sort: Type", "type"),
+                    ("Sort: Source", "source"),
+                ],
+                id="sort_filter",
+                allow_blank=False,
+                value="name",
+            ),
             id="filters",
         )
 
@@ -154,6 +165,23 @@ class MonstersView(BaseListView):
         size_select = self.query_one("#size_filter", Select)
         if size_select.value is not None:
             filtered = [m for m in filtered if size_select.value in m.size]
+
+        sort_select = self.query_one("#sort_filter", Select)
+        sort_key = sort_select.value or "name"
+        if sort_key == "cr":
+            def _cr_key(m: Monster):
+                cr = m.cr_display
+                try:
+                    return (cr_to_float(cr), m.name.lower())
+                except (ValueError, ZeroDivisionError):
+                    return (float("inf"), m.name.lower())
+            filtered = sorted(filtered, key=_cr_key)
+        elif sort_key == "type":
+            filtered = sorted(filtered, key=lambda m: (m.type_display.lower(), m.name.lower()))
+        elif sort_key == "source":
+            filtered = sorted(filtered, key=lambda m: (m.source.lower(), m.name.lower()))
+        else:
+            filtered = sorted(filtered, key=lambda m: m.name.lower())
 
         self.items = filtered
         search_input = self.query_one("#search", Input)
