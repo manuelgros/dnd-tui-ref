@@ -42,6 +42,12 @@ class SettingsView(Vertical):
         n = len(checkboxes)
         new_idx = None
 
+        if event.key in ("tab", "shift+tab"):
+            # Tab / Shift+Tab always exits book selection back to the tab bar
+            self.app.query_one("Tabs").focus()
+            event.stop()
+            return
+
         if event.key == "down":
             candidate = idx + self._COLS
             new_idx = candidate if candidate < n else idx
