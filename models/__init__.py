@@ -3,7 +3,7 @@ from .spell import Spell
 from .monster import Monster, cr_to_float
 from .item import Item
 from .feat import Feat
-from .condition import Condition
+from .rule import Rule
 
 __all__ = [
     "BaseModel",
@@ -12,6 +12,6 @@ __all__ = [
     "cr_to_float",
     "Item",
     "Feat",
-    "Condition",
+    "Rule",
 ]
 

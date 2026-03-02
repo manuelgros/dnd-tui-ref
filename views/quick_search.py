@@ -5,21 +5,21 @@ from textual.containers import Vertical
 from textual.timer import Timer
 from textual.widgets import Input, Label, ListItem, ListView, Static
 
-from models import Condition, Feat, Item, Monster, Spell
+from models import Rule, Feat, Item, Monster, Spell
 from services import SearchService, SOURCE_SHORT
 
 from .spell_detail import SpellDetailScreen
 from .monster_detail import MonsterDetailScreen
 from .item_detail import ItemDetailScreen
 from .feat_detail import FeatDetailScreen
-from .condition_detail import ConditionDetailScreen
+from .rules import RuleDetailScreen
 
 
-SHORTCUT_LEGEND = "m: Monsters  •  i: Items  •  s: Spells  •  f: Feats  •  c: Conditions"
+SHORTCUT_LEGEND = "m: Monsters  •  i: Items  •  s: Spells  •  f: Feats  •  r: Rules"
 
-_PREFIX_MAP = {"m": "monster", "i": "item", "s": "spell", "f": "feat", "c": "condition"}
+_PREFIX_MAP = {"m": "monster", "i": "item", "s": "spell", "f": "feat", "r": "rule"}
 
-_CATEGORY_ORDER = ["spell", "monster", "item", "feat", "condition"]
+_CATEGORY_ORDER = ["spell", "monster", "item", "feat", "rule"]
 
 _SCHOOLS = {
     "A": "Abjuration", "C": "Conjuration", "D": "Divination", "E": "Enchantment",
@@ -36,7 +36,7 @@ class QuickSearchView(Vertical):
         monsters: List[Monster],
         items: List[Item],
         feats: List[Feat],
-        conditions: List[Condition],
+        rules: List[Rule],
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
@@ -45,14 +45,14 @@ class QuickSearchView(Vertical):
             "monster": monsters,
             "item": items,
             "feat": feats,
-            "condition": conditions,
+            "rule": rules,
         }
         self._results: List[Tuple[str, Any]] = []
         self._search_timer: Optional[Timer] = None
 
     def compose(self) -> ComposeResult:
         yield Input(
-            placeholder="Search all… or prefix with  m:  i:  s:  f:  c:",
+            placeholder="Search all… or prefix with  m:  i:  s:  f:  r:",
             id="search",
         )
         yield Static(SHORTCUT_LEGEND, id="shortcuts")
@@ -112,8 +112,8 @@ class QuickSearchView(Vertical):
         if type_key == "feat":
             cat = item.category or "-"
             return f"[F] {item.name}  •  {cat}  •  {src}"
-        if type_key == "condition":
-            return f"[C] {item.name}  •  {src}"
+        if type_key == "rule":
+            return f"[R] {item.name}  •  {item.type_display}  •  {src}"
         return item.name
 
     def _update_list(self) -> None:
@@ -141,7 +141,7 @@ class QuickSearchView(Vertical):
             "monster": MonsterDetailScreen,
             "item": ItemDetailScreen,
             "feat": FeatDetailScreen,
-            "condition": ConditionDetailScreen,
+            "rule": RuleDetailScreen,
         }
         if type_key in detail_map:
             self.app.push_screen(detail_map[type_key](item))

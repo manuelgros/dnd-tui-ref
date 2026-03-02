@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import List, Optional
 
-from models import Spell, Monster, Item, Feat, Condition, cr_to_float
+from models import Spell, Monster, Item, Feat, Rule, cr_to_float
 
 
 ALLOWED_SOURCES = {"XPHB", "XDMG", "XMM", "XGE", "TCE", "BGG", "FleeMortals"}
@@ -15,7 +15,7 @@ class DataLoader:
         self._monsters: Optional[List[Monster]] = None
         self._items: Optional[List[Item]] = None
         self._feats: Optional[List[Feat]] = None
-        self._conditions: Optional[List[Condition]] = None
+        self._rules: Optional[List[Rule]] = None
 
     @property
     def spells(self) -> List[Spell]:
@@ -42,10 +42,10 @@ class DataLoader:
         return self._feats
 
     @property
-    def conditions(self) -> List[Condition]:
-        if self._conditions is None:
-            self._conditions = self._load_conditions()
-        return self._conditions
+    def rules(self) -> List[Rule]:
+        if self._rules is None:
+            self._rules = self._load_rules()
+        return self._rules
 
     def _load_spells(self) -> List[Spell]:
         spells: List[Spell] = []
@@ -336,23 +336,55 @@ class DataLoader:
 
         return sorted(feats, key=lambda f_: f_.name)
 
-    def _load_conditions(self) -> List[Condition]:
-        conditions: List[Condition] = []
-        file_path = self.data_dir / "conditionsdiseases.json"
+    def _load_rules(self) -> List[Rule]:
+        rules: List[Rule] = []
 
-        with open(file_path, "r", encoding="utf-8") as f:
+        # Core rules from variantrules.json (XPHB only, ruleType "C")
+        vr_path = self.data_dir / "rules" / "variantrules.json"
+        with open(vr_path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            for cond_data in data.get("condition", []):
-                if cond_data.get("source") != "XPHB":
-                    continue
+        for entry in data.get("variantrule", []):
+            if entry.get("source") == "XPHB" and entry.get("ruleType") == "C":
+                rules.append(Rule(
+                    name=entry["name"],
+                    source=entry["source"],
+                    entries=entry.get("entries", []),
+                    rule_type="C",
+                ))
 
-                conditions.append(
-                    Condition(
-                        name=cond_data["name"],
-                        source=cond_data["source"],
-                        entries=cond_data.get("entries", []),
-                    )
-                )
+        # Conditions, status effects, and diseases from conditionsdiseases.json
+        cd_path = self.data_dir / "rules" / "conditionsdiseases.json"
+        with open(cd_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
 
-        return sorted(conditions, key=lambda c: c.name)
+        for cond in data.get("condition", []):
+            if cond.get("source") == "XPHB":
+                rules.append(Rule(
+                    name=cond["name"],
+                    source=cond["source"],
+                    entries=cond.get("entries", []),
+                    rule_type="condition",
+                ))
+
+        # Status effects (Bloodied, Concentration, Surprised) — treat as conditions
+        for status in data.get("status", []):
+            if status.get("source") == "XPHB":
+                rules.append(Rule(
+                    name=status["name"],
+                    source=status["source"],
+                    entries=status.get("entries", []),
+                    rule_type="condition",
+                ))
+
+        # Diseases from ALLOWED_SOURCES (XDMG has Cackle Fever, Sewer Plague, Sight Rot)
+        for disease in data.get("disease", []):
+            if disease.get("source") in ALLOWED_SOURCES:
+                rules.append(Rule(
+                    name=disease["name"],
+                    source=disease["source"],
+                    entries=disease.get("entries", []),
+                    rule_type="disease",
+                ))
+
+        return sorted(rules, key=lambda r: r.name)
 

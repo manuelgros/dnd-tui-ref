@@ -6,7 +6,7 @@ from textual.binding import Binding
 from textual.widgets import Footer, Header, Input, Static, TabbedContent, TabPane
 
 from services import DataLoader
-from views import SpellsView, MonstersView, ItemsView, FeatsView, ConditionsView, QuickSearchView, SettingsView
+from views import SpellsView, MonstersView, ItemsView, FeatsView, RulesView, QuickSearchView, SettingsView
 from views.settings import DEFAULT_ACTIVE_SOURCES
 
 
@@ -23,7 +23,7 @@ class DnDReferenceApp(App):
         Binding("ctrl+3", "switch_tab('monsters')", "Monsters", show=False),
         Binding("ctrl+4", "switch_tab('items')", "Items", show=False),
         Binding("ctrl+5", "switch_tab('feats')", "Feats", show=False),
-        Binding("ctrl+6", "switch_tab('conditions')", "Conditions", show=False),
+        Binding("ctrl+6", "switch_tab('rules')", "Rules", show=False),
         Binding("ctrl+7", "switch_tab('settings')", "Settings", show=False),
         Binding("/", "focus_search", "Search", show=True),
         Binding("escape", "quick_search", "Quick Search", show=False),
@@ -47,7 +47,7 @@ class DnDReferenceApp(App):
                     monsters=self._filter(self.data_loader.monsters),
                     items=self._filter(self.data_loader.items),
                     feats=self._filter(self.data_loader.feats),
-                    conditions=self._filter(self.data_loader.conditions),
+                    rules=self._filter(self.data_loader.rules),
                 )
             with TabPane("Spells", id="spells"):
                 yield SpellsView(self._filter(self.data_loader.spells))
@@ -66,8 +66,8 @@ class DnDReferenceApp(App):
                     self._filter(self.data_loader.feats),
                     active_sources=self.active_sources,
                 )
-            with TabPane("Conditions", id="conditions"):
-                yield ConditionsView(self._filter(self.data_loader.conditions))
+            with TabPane("Rules", id="rules"):
+                yield RulesView(self._filter(self.data_loader.rules))
             with TabPane("Settings", id="settings"):
                 yield SettingsView()
         yield Footer()
@@ -80,19 +80,19 @@ class DnDReferenceApp(App):
         monsters = self._filter(self.data_loader.monsters)
         items = self._filter(self.data_loader.items)
         feats = self._filter(self.data_loader.feats)
-        conditions = self._filter(self.data_loader.conditions)
+        rules = self._filter(self.data_loader.rules)
 
         self.query_one(SpellsView).reload(spells, self.active_sources)
         self.query_one(MonstersView).reload(monsters, self.active_sources)
         self.query_one(ItemsView).reload(items, self.active_sources)
         self.query_one(FeatsView).reload(feats, self.active_sources)
-        self.query_one(ConditionsView).reload(conditions, self.active_sources)
+        self.query_one(RulesView).reload(rules, self.active_sources)
         self.query_one(QuickSearchView).reload({
             "spell": spells,
             "monster": monsters,
             "item": items,
             "feat": feats,
-            "condition": conditions,
+            "rule": rules,
         })
 
     def action_quick_search(self) -> None:

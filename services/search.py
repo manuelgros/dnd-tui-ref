@@ -29,7 +29,7 @@ class SearchService:
             "m": "monster",
             "i": "item",
             "f": "feat",
-            "c": "condition",
+            "r": "rule",
         }
 
         return tag_map.get(tag, tag), term
