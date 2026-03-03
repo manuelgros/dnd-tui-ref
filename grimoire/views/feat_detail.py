@@ -1,6 +1,7 @@
 import re
 from typing import Any, List
 
+from rich.text import Text
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import ScrollableContainer, Vertical
@@ -9,6 +10,8 @@ from textual.widgets import Button, Static
 
 from ..models import Feat
 from ..services import SOURCE_FULL
+
+_LABEL_COLOR = "#5f87ff"
 
 CATEGORY_LABELS = {
     "G": "General",
@@ -32,6 +35,12 @@ class FeatDetailScreen(Screen):
         super().__init__()
         self.feat = feat
 
+    def _stat(self, label: str, value: str) -> Static:
+        t = Text()
+        t.append(label, style=f"bold {_LABEL_COLOR}")
+        t.append(f" {value}")
+        return Static(t)
+
     def compose(self) -> ComposeResult:
         ft = self.feat
         with Vertical():
@@ -41,9 +50,9 @@ class FeatDetailScreen(Screen):
             if ft.repeatable:
                 yield Static("[dim]Repeatable[/dim]")
             if ft.has_prerequisite:
-                yield Static(f"[bold]Prerequisite:[/bold] {self._format_prereq(ft.prerequisite)}")
+                yield self._stat("Prerequisite:", self._format_prereq(ft.prerequisite))
             if ft.ability:
-                yield Static(f"[bold]Ability Score Increase:[/bold] {self._format_ability(ft.ability)}")
+                yield self._stat("Ability Score Increase:", self._format_ability(ft.ability))
             yield Static("")
 
             with ScrollableContainer():

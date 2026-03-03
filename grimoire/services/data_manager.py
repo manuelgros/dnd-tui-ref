@@ -63,7 +63,8 @@ class DataManager:
             source_ids: List of source ID strings (e.g. ["XPHB", "XGE"])
             progress_cb: Optional callback(file_path, current, total) for progress reporting
         """
-        files = self.files_for_sources(source_ids)
+        all_files = self.files_for_sources(source_ids)
+        files = [f for f in all_files if not (self.data_dir / f).exists()]
         total = len(files)
 
         with httpx.Client(timeout=30.0, follow_redirects=True) as client:

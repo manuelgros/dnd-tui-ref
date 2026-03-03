@@ -44,10 +44,25 @@ Static {
     overflow-y: auto;
 }
 
+/* Settings tab: make the view scrollable so the Manage Sources button stays reachable */
+SettingsView {
+    overflow-y: auto;
+}
+
 /* Settings: 2-column grid of source checkboxes */
 #source_list {
     layout: grid;
     grid-size: 2;
     grid-gutter: 0 2;
     height: auto;
+}
+
+/* Manage sources: side-by-side Cancel / Apply buttons */
+#buttons {
+    height: auto;
+    align: left middle;
+}
+
+#buttons Button {
+    margin-right: 2;
 }

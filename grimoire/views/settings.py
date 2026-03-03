@@ -4,7 +4,7 @@ from textual import events
 from textual.app import ComposeResult
 from textual.containers import Vertical, Grid
 from textual.message import Message
-from textual.widgets import Checkbox, Static
+from textual.widgets import Button, Checkbox, Static
 
 from ..services import SOURCE_FULL
 
@@ -16,6 +16,11 @@ class SettingsView(Vertical):
         def __init__(self, active_sources: set) -> None:
             super().__init__()
             self.active_sources = active_sources
+
+    class SourcesInstalled(Message):
+        def __init__(self, installed_sources: set) -> None:
+            super().__init__()
+            self.installed_sources = installed_sources
 
     def __init__(self, installed_sources: Optional[Set[str]] = None, **kwargs: Any) -> None:
         super().__init__(**kwargs)
@@ -35,6 +40,8 @@ class SettingsView(Vertical):
                 if code not in self._installed_sources:
                     continue
                 yield Checkbox(title, value=True, name=code)
+        yield Static("")
+        yield Button("Manage Sources", id="manage_sources", variant="primary")
 
     _COLS = 2  # must match grid-size in styles.css
 
@@ -48,7 +55,12 @@ class SettingsView(Vertical):
         n = len(checkboxes)
         new_idx = None
 
-        if event.key in ("tab", "shift+tab"):
+        if event.key == "tab":
+            self.query_one("#manage_sources", Button).focus()
+            self.query_one("#manage_sources", Button).scroll_visible()
+            event.stop()
+            return
+        elif event.key == "shift+tab":
             self.app.query_one("Tabs").focus()
             event.stop()
             return
@@ -70,6 +82,33 @@ class SettingsView(Vertical):
             checkboxes[new_idx].focus()
             checkboxes[new_idx].scroll_visible()
             event.stop()
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "manage_sources":
+            from .manage_sources import ManageSourcesScreen
+            self.app.push_screen(
+                ManageSourcesScreen(
+                    installed_sources=set(self._installed_sources),
+                    data_dir=self.app.data_dir,
+                ),
+                self._on_sources_managed,
+            )
+
+    def _on_sources_managed(self, new_installed: Optional[Set[str]]) -> None:
+        if new_installed is None:
+            return
+        self._installed_sources = new_installed
+        self._refresh_source_grid()
+        self.post_message(self.SourcesInstalled(new_installed))
+
+    def _refresh_source_grid(self) -> None:
+        grid = self.query_one("#source_list", Grid)
+        for cb in grid.query(Checkbox):
+            cb.remove()
+        for code, title in SOURCE_FULL.items():
+            if code not in self._installed_sources:
+                continue
+            grid.mount(Checkbox(title, value=True, name=code))
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
         active = {cb.name for cb in self.query(Checkbox) if cb.value and cb.name}

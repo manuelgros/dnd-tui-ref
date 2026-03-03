@@ -30,6 +30,7 @@ class GrimoireApp(App):
 
     def __init__(self, data_dir: Path, installed_sources: Optional[Set[str]] = None) -> None:
         super().__init__()
+        self.data_dir = data_dir
         self.data_loader = DataLoader(data_dir)
         # When no installed_sources given (e.g. --data-dir mode) treat all known sources as available
         self._installed_sources: Set[str] = installed_sources if installed_sources is not None else set(SOURCE_FULL.keys())
@@ -76,6 +77,31 @@ class GrimoireApp(App):
     def on_settings_view_sources_changed(self, event: SettingsView.SourcesChanged) -> None:
         """Reload all views whenever the user toggles a source in Settings."""
         self.active_sources = event.active_sources
+
+        spells = self._filter(self.data_loader.spells)
+        monsters = self._filter(self.data_loader.monsters)
+        items = self._filter(self.data_loader.items)
+        feats = self._filter(self.data_loader.feats)
+        rules = self._filter(self.data_loader.rules)
+
+        self.query_one(SpellsView).reload(spells, self.active_sources)
+        self.query_one(MonstersView).reload(monsters, self.active_sources)
+        self.query_one(ItemsView).reload(items, self.active_sources)
+        self.query_one(FeatsView).reload(feats, self.active_sources)
+        self.query_one(RulesView).reload(rules, self.active_sources)
+        self.query_one(QuickSearchView).reload({
+            "spell": spells,
+            "monster": monsters,
+            "item": items,
+            "feat": feats,
+            "rule": rules,
+        })
+
+    def on_settings_view_sources_installed(self, event: SettingsView.SourcesInstalled) -> None:
+        """Reload all data after new sources are downloaded or removed via Manage Sources."""
+        self._installed_sources = event.installed_sources
+        self.active_sources = set(event.installed_sources)
+        self.data_loader = DataLoader(self.data_dir)
 
         spells = self._filter(self.data_loader.spells)
         monsters = self._filter(self.data_loader.monsters)
