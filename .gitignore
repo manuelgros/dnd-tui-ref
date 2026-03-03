@@ -1,8 +1,13 @@
 5etools-v2.25.0/
+data/
+MCDM*
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.egg-info/
+dist/
+build/
 .venv/
 venv/

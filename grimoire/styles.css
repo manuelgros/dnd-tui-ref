@@ -1,0 +1,48 @@
+/* Basic styling for the D&D 5E Reference TUI */
+
+Screen {
+    background: $surface;
+}
+
+Header, Footer {
+    background: $accent;
+    color: $text;
+}
+
+TabbedContent {
+    border: tall $accent;
+}
+
+TabPane {
+    padding: 1 2;
+}
+
+Static {
+    content-align: left top;
+}
+
+/* Detail screen title: centered, bold, accent colour */
+.title {
+    content-align: center middle;
+    text-style: bold;
+    color: $accent;
+    padding: 0 0 1 0;
+}
+
+/* Results counter above list */
+#results_count {
+    color: $text-muted;
+}
+
+/* Shortcut legend in Quick Search */
+#shortcuts {
+    color: $text-muted;
+}
+
+/* Settings: 2-column grid of source checkboxes */
+#source_list {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 0 2;
+    height: auto;
+}

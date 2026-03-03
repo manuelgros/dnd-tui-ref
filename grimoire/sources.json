@@ -1,0 +1,73 @@
+{
+  "format_version": 1,
+  "5etools_version": "v2.25.0",
+  "base_url": "https://raw.githubusercontent.com/5etools-mirror-3/5etools-src/v2.25.0/data",
+  "global_files": [
+    "conditionsdiseases.json",
+    "variantrules.json",
+    "feats.json",
+    "items.json",
+    "items-base.json",
+    "magicvariants.json",
+    "bestiary/legendarygroups.json"
+  ],
+  "sources": [
+    {
+      "id": "XPHB",
+      "name": "Player's Handbook (2024)",
+      "description": "Core rules, spells, and character options for 5e 2024 edition",
+      "default": true,
+      "files": [
+        "spells/spells-xphb.json",
+        "bestiary/bestiary-xphb.json"
+      ]
+    },
+    {
+      "id": "XDMG",
+      "name": "Dungeon Master's Guide (2024)",
+      "description": "DM tools, magic items, and optional rules for 5e 2024 edition",
+      "default": true,
+      "files": [
+        "bestiary/bestiary-xdmg.json"
+      ]
+    },
+    {
+      "id": "XMM",
+      "name": "Monster Manual (2025)",
+      "description": "Comprehensive monster compendium for 5e 2024 edition",
+      "default": true,
+      "files": [
+        "bestiary/bestiary-xmm.json"
+      ]
+    },
+    {
+      "id": "XGE",
+      "name": "Xanathar's Guide to Everything",
+      "description": "Expanded subclasses, spells, and DM tools",
+      "default": false,
+      "files": [
+        "spells/spells-xge.json",
+        "bestiary/bestiary-xge.json"
+      ]
+    },
+    {
+      "id": "TCE",
+      "name": "Tasha's Cauldron of Everything",
+      "description": "Additional subclasses, spells, and optional features",
+      "default": false,
+      "files": [
+        "spells/spells-tce.json",
+        "bestiary/bestiary-tce.json"
+      ]
+    },
+    {
+      "id": "BGG",
+      "name": "Bigby Presents: Glory of the Giants",
+      "description": "Giant-focused monsters, lore, and player options",
+      "default": false,
+      "files": [
+        "bestiary/bestiary-bgg.json"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,9 @@
     "allow": [
       "Bash(python3 -c \":*)",
       "WebFetch(domain:5e.tools)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(curl -s \"https://api.github.com/repos/5etools-mirror-3/5etools-src/contents/data/spells?ref=v2.25.0\")",
+      "Bash(curl -s \"https://api.github.com/repos/5etools-mirror-3/5etools-src/contents/data/bestiary?ref=v2.25.0\")"
     ]
   }
 }
