@@ -7,6 +7,8 @@ from textual.message import Message
 from textual.widgets import Button, Checkbox, Select, Static
 
 from ..services import SOURCE_FULL
+from ..themes import GRIMOIRE_THEMES
+from ._grouped_select import GroupedSelect
 
 
 class SettingsView(Vertical):
@@ -41,12 +43,19 @@ class SettingsView(Vertical):
         yield Static("[bold]Settings[/bold]", classes="title")
         yield Static("")
         yield Static("[bold yellow]Appearance[/bold yellow]")
-        theme_options = [
+        grimoire_names = {t.name for t in GRIMOIRE_THEMES}
+        grimoire_group = [
+            (t.name.replace("-", " ").title(), t.name)
+            for t in GRIMOIRE_THEMES
+            if t.name in self.app.available_themes
+        ]
+        textual_group = [
             (name.replace("-", " ").title(), name)
             for name in sorted(self.app.available_themes.keys())
+            if name not in grimoire_names
         ]
-        yield Select(
-            options=theme_options,
+        yield GroupedSelect(
+            groups=[("Grimoire Themes", grimoire_group), ("Textual Themes", textual_group)],
             id="theme_select",
             allow_blank=False,
             value=self._current_theme,
@@ -78,7 +87,7 @@ class SettingsView(Vertical):
         new_idx = None
 
         if event.key == "tab":
-            theme_select = self.query_one("#theme_select", Select)
+            theme_select = self.query_one("#theme_select", GroupedSelect)
             theme_select.focus()
             theme_select.scroll_visible()
             event.stop()
@@ -134,7 +143,7 @@ class SettingsView(Vertical):
             grid.mount(Checkbox(title, value=True, name=code))
 
     def on_select_changed(self, event: Select.Changed) -> None:
-        if event.select.id == "theme_select" and isinstance(event.value, str):
+        if isinstance(event.select, GroupedSelect) and event.select.id == "theme_select" and isinstance(event.value, str):
             self.post_message(self.ThemeChanged(event.value))
 
     def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
