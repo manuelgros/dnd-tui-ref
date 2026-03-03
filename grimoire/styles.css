@@ -39,6 +39,11 @@ Static {
     color: $text-muted;
 }
 
+/* Setup wizard: make the outer container scrollable so the button stays reachable */
+#wizard {
+    overflow-y: auto;
+}
+
 /* Settings: 2-column grid of source checkboxes */
 #source_list {
     layout: grid;

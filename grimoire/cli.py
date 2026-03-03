@@ -30,18 +30,25 @@ def main() -> None:
     elif args.manage_sources:
         _run_setup_wizard(manage_only=True)
     else:
-        from .config import is_data_installed, get_data_dir
+        from .config import is_data_installed, get_data_dir, load_config
         if not is_data_installed():
             _run_setup_wizard()
         else:
-            _run_app(data_dir=get_data_dir())
+            cfg = load_config()
+            installed = set(cfg.get("installed_sources", []))
+            _run_app(data_dir=get_data_dir(), installed_sources=installed)
 
 
-def _run_app(data_dir: Path) -> None:
+def _run_app(data_dir: Path, installed_sources=None) -> None:
     from .app import GrimoireApp
-    GrimoireApp(data_dir=data_dir).run()
+    GrimoireApp(data_dir=data_dir, installed_sources=installed_sources).run()
 
 
 def _run_setup_wizard(manage_only: bool = False) -> None:
     from .views.setup_wizard import SetupWizardApp
-    SetupWizardApp(manage_only=manage_only).run()
+    from .config import get_data_dir
+    installed = SetupWizardApp(manage_only=manage_only).run()
+    # run() returns whatever was passed to self.exit() — the set of installed source IDs.
+    # Launch the main app only if the wizard completed a download (not if user quit early).
+    if installed:
+        _run_app(data_dir=get_data_dir(), installed_sources=installed)

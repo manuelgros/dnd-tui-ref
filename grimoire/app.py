@@ -1,13 +1,12 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional, Set
 
 from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
 
-from .services import DataLoader
+from .services import DataLoader, SOURCE_FULL
 from .views import SpellsView, MonstersView, ItemsView, FeatsView, RulesView, QuickSearchView, SettingsView
-from .views.settings import DEFAULT_ACTIVE_SOURCES
 
 
 class GrimoireApp(App):
@@ -29,10 +28,12 @@ class GrimoireApp(App):
         Binding("escape", "quick_search", "Quick Search", show=False),
     ]
 
-    def __init__(self, data_dir: Path) -> None:
+    def __init__(self, data_dir: Path, installed_sources: Optional[Set[str]] = None) -> None:
         super().__init__()
         self.data_loader = DataLoader(data_dir)
-        self.active_sources: set = set(DEFAULT_ACTIVE_SOURCES)
+        # When no installed_sources given (e.g. --data-dir mode) treat all known sources as available
+        self._installed_sources: Set[str] = installed_sources if installed_sources is not None else set(SOURCE_FULL.keys())
+        self.active_sources: set = set(self._installed_sources)
 
     def _filter(self, items: List) -> List:
         """Return only items whose source is currently active."""
@@ -69,7 +70,7 @@ class GrimoireApp(App):
             with TabPane("Rules", id="rules"):
                 yield RulesView(self._filter(self.data_loader.rules))
             with TabPane("Settings", id="settings"):
-                yield SettingsView()
+                yield SettingsView(installed_sources=self._installed_sources)
         yield Footer()
 
     def on_settings_view_sources_changed(self, event: SettingsView.SourcesChanged) -> None:

@@ -1,3 +1,5 @@
+from typing import Any, Optional, Set
+
 from textual import events
 from textual.app import ComposeResult
 from textual.containers import Vertical, Grid
@@ -5,9 +7,6 @@ from textual.message import Message
 from textual.widgets import Checkbox, Static
 
 from ..services import SOURCE_FULL
-
-# Sources active by default on first launch
-DEFAULT_ACTIVE_SOURCES: set = set(SOURCE_FULL.keys())
 
 
 class SettingsView(Vertical):
@@ -17,6 +16,11 @@ class SettingsView(Vertical):
         def __init__(self, active_sources: set) -> None:
             super().__init__()
             self.active_sources = active_sources
+
+    def __init__(self, installed_sources: Optional[Set[str]] = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        # Only show sources that were actually downloaded
+        self._installed_sources: Set[str] = installed_sources if installed_sources is not None else set(SOURCE_FULL.keys())
 
     def compose(self) -> ComposeResult:
         yield Static("[bold]Settings[/bold]", classes="title")
@@ -28,7 +32,9 @@ class SettingsView(Vertical):
         yield Static("")
         with Grid(id="source_list"):
             for code, title in SOURCE_FULL.items():
-                yield Checkbox(title, value=(code in DEFAULT_ACTIVE_SOURCES), name=code)
+                if code not in self._installed_sources:
+                    continue
+                yield Checkbox(title, value=True, name=code)
 
     _COLS = 2  # must match grid-size in styles.css
 

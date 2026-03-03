@@ -2,10 +2,11 @@ import threading
 from pathlib import Path
 from typing import List
 
+from textual import events
 from textual.app import App, ComposeResult
 from textual.binding import Binding
-from textual.containers import ScrollableContainer, Vertical
-from textual.widgets import Button, Checkbox, Footer, Header, Label, ProgressBar, Static
+from textual.containers import Grid, Vertical
+from textual.widgets import Button, Checkbox, Footer, Header, ProgressBar, Static
 
 
 class SetupWizardApp(App):
@@ -45,7 +46,7 @@ class SetupWizardApp(App):
             yield Static("")
             yield Static("[bold]Select source books to include:[/bold]")
 
-            with ScrollableContainer(id="sources"):
+            with Grid(id="source_list"):
                 installed = set(self._manager.get_installed_sources())
                 for src in self._manager.sources:
                     default = src.get("default", False) or src["id"] in installed
@@ -60,9 +61,52 @@ class SetupWizardApp(App):
             yield Static("", id="status")
             yield ProgressBar(total=100, show_eta=False, id="progress")
             yield Static("")
-            yield Button("Download & Launch", id="download", variant="primary")
+            installed = set(self._manager.get_installed_sources())
+            any_selected = any(
+                src.get("default", False) or src["id"] in installed
+                for src in self._manager.sources
+            )
+            yield Button("Download & Launch", id="download", variant="primary", disabled=not any_selected)
 
         yield Footer()
+
+    _COLS = 2  # must match grid-size in styles.css
+
+    def on_key(self, event: events.Key) -> None:
+        checkboxes = list(self.query(Checkbox))
+        focused = self.focused
+        if focused not in checkboxes:
+            return
+
+        idx = checkboxes.index(focused)
+        n = len(checkboxes)
+        new_idx = None
+
+        if event.key == "down":
+            candidate = idx + self._COLS
+            new_idx = candidate if candidate < n else idx
+        elif event.key == "up":
+            candidate = idx - self._COLS
+            new_idx = candidate if candidate >= 0 else idx
+        elif event.key == "right":
+            if idx % self._COLS < self._COLS - 1 and idx + 1 < n:
+                new_idx = idx + 1
+        elif event.key == "left":
+            if idx % self._COLS > 0:
+                new_idx = idx - 1
+        elif event.key == "tab":
+            self.query_one("#download", Button).focus()
+            event.stop()
+            return
+
+        if new_idx is not None and new_idx != idx:
+            checkboxes[new_idx].focus()
+            event.stop()
+
+    def on_checkbox_changed(self, event: Checkbox.Changed) -> None:
+        if not self._downloading:
+            any_selected = any(cb.value for cb in self.query(Checkbox))
+            self.query_one("#download", Button).disabled = not any_selected
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "download" and not self._downloading:
@@ -108,10 +152,9 @@ class SetupWizardApp(App):
         )
         self.query_one("#progress", ProgressBar).update(progress=100)
 
-        from ..config import get_data_dir
-        from ..app import GrimoireApp
-        self.exit()
-        GrimoireApp(data_dir=get_data_dir()).run()
+        # Exit the wizard, passing the selected sources as the return value.
+        # cli.py will receive this from run() and launch GrimoireApp afterwards.
+        self.exit(set(sources))
 
     def _on_error(self, message: str) -> None:
         self._downloading = False
