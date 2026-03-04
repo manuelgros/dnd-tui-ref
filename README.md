@@ -22,6 +22,7 @@ A terminal UI for D&D 5th Edition reference material — spells, monsters, items
 
 - Python 3.11 or newer
 - Internet connection for first-run data download
+- **Windows only:** [Windows Terminal](https://aka.ms/terminal) (the default CMD/PowerShell console does not support the required ANSI colours)
 
 ## Installation
 
@@ -30,11 +31,15 @@ A terminal UI for D&D 5th Edition reference material — spells, monsters, items
 [pipx](https://pipx.pypa.io) installs Python CLI tools in isolated environments and puts them on your PATH — no virtual environment management needed.
 
 ```bash
-# Install pipx if you don't have it
-brew install pipx      # macOS
-apt install pipx       # Debian/Ubuntu
+# macOS
+brew install pipx && pipx install grimoire5e
 
-# Install Grimoire 5e
+# Linux (Debian/Ubuntu)
+apt install pipx && pipx install grimoire5e
+
+# Windows (in Windows Terminal, using winget)
+winget install Python.Launcher
+pip install pipx
 pipx install grimoire5e
 ```
 
