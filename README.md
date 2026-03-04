@@ -27,13 +27,13 @@ A terminal UI for D&D 5th Edition reference material — spells, monsters, items
 ### From GitHub
 
 ```bash
-pip install git+https://github.com/<your-username>/grimoire5e.git
+pip install git+https://github.com/manuelgros/grimoire5e.git
 ```
 
 ### From source (for development)
 
 ```bash
-git clone https://github.com/<your-username>/grimoire5e.git
+git clone https://github.com/manuelgros/grimoire5e.git
 cd grimoire5e
 pip install -e .
 ```
