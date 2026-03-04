@@ -2,6 +2,7 @@
 
 A terminal UI for D&D 5th Edition reference material — spells, monsters, items, feats, and rules — all searchable and filterable without leaving your keyboard.
 
+![PyPI](https://img.shields.io/pypi/v/grimoire5e)
 ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue)
 ![License: MIT](https://img.shields.io/badge/license-MIT-green)
 
@@ -24,10 +25,23 @@ A terminal UI for D&D 5th Edition reference material — spells, monsters, items
 
 ## Installation
 
-### From GitHub
+### Recommended (pipx)
+
+[pipx](https://pipx.pypa.io) installs Python CLI tools in isolated environments and puts them on your PATH — no virtual environment management needed.
 
 ```bash
-pip install git+https://github.com/manuelgros/grimoire5e.git
+# Install pipx if you don't have it
+brew install pipx      # macOS
+apt install pipx       # Debian/Ubuntu
+
+# Install Grimoire 5e
+pipx install grimoire5e
+```
+
+### Alternative (pip)
+
+```bash
+pip install grimoire5e
 ```
 
 ### From source (for development)
