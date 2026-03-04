@@ -33,6 +33,20 @@
     {"id":"SCC","name":"Strixhaven: A Curriculum of Chaos","default":false,"files":["spells/spells-scc.json","bestiary/bestiary-scc.json"]},
     {"id":"BAM","name":"Spelljammer: Boo's Astral Menagerie","default":false,"files":["bestiary/bestiary-bam.json"]},
     {"id":"AI","name":"Acquisitions Incorporated","default":false,"files":["spells/spells-ai.json","bestiary/bestiary-ai.json"]},
-    {"id":"BMT","name":"The Book of Many Things","default":false,"files":["spells/spells-bmt.json","bestiary/bestiary-bmt.json"]}
+    {"id":"BMT","name":"The Book of Many Things","default":false,"files":["spells/spells-bmt.json","bestiary/bestiary-bmt.json"]},
+    {"id":"FRHoF","name":"Forgotten Realms: Heroes of Faerun","default":false,"files":["spells/spells-frhof.json"]},
+    {"id":"FRAiF","name":"Forgotten Realms: Adventures in Faerun","default":false,"files":["bestiary/bestiary-fraif.json"]},
+    {"id":"HotDQ","name":"Hoard of the Dragon Queen","default":false,"files":["bestiary/bestiary-hotdq.json"]},
+    {"id":"RoT","name":"Rise of Tiamat","default":false,"files":["bestiary/bestiary-rot.json"]},
+    {"id":"PotA","name":"Princes of the Apocalypse","default":false,"files":["bestiary/bestiary-pota.json"]},
+    {"id":"OotA","name":"Out of the Abyss","default":false,"files":["bestiary/bestiary-oota.json"]},
+    {"id":"CoS","name":"Curse of Strahd","default":false,"files":["bestiary/bestiary-cos.json"]},
+    {"id":"SKT","name":"Storm King's Thunder","default":false,"files":["bestiary/bestiary-skt.json"]},
+    {"id":"ToA","name":"Tomb of Annihilation","default":false,"files":["bestiary/bestiary-toa.json"]},
+    {"id":"WDH","name":"Waterdeep: Dragon Heist","default":false,"files":["bestiary/bestiary-wdh.json"]},
+    {"id":"WDMM","name":"Waterdeep: Dungeon of the Mad Mage","default":false,"files":["bestiary/bestiary-wdmm.json"]},
+    {"id":"BGDIA","name":"Baldur's Gate: Descent into Avernus","default":false,"files":["bestiary/bestiary-bgdia.json"]},
+    {"id":"IDRotF","name":"Icewind Dale: Rime of the Frostmaiden","default":false,"files":["spells/spells-idrotf.json","bestiary/bestiary-idrotf.json"]},
+    {"id":"WBtW","name":"The Wild Beyond the Witchlight","default":false,"files":["bestiary/bestiary-wbtw.json"]}
   ]
 }

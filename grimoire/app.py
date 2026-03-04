@@ -27,7 +27,7 @@ class GrimoireApp(App):
         Binding("ctrl+6", "switch_tab('rules')", "Rules", show=False),
         Binding("ctrl+7", "switch_tab('settings')", "Settings", show=False),
         Binding("/", "focus_search", "Search", show=True),
-        Binding("escape", "quick_search", "Quick Search", show=False),
+        Binding("escape", "quick_search", "Quick Search", show=True),
     ]
 
     def __init__(self, data_dir: Path, installed_sources: Optional[Set[str]] = None) -> None:

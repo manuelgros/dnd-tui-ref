@@ -60,7 +60,16 @@ class Monster(BaseModel):
                 base = "/".join(choices) if choices else "unknown"
             tags = self.type.get("tags", [])
             if tags:
-                return f"{base} ({', '.join(tags)})"
+                tag_strs = []
+                for tag in tags:
+                    if isinstance(tag, str):
+                        tag_strs.append(tag)
+                    elif isinstance(tag, dict):
+                        prefix = tag.get("prefix", "")
+                        hidden = tag.get("prefixHidden", False)
+                        name = tag.get("tag", "")
+                        tag_strs.append(f"{prefix} {name}".strip() if prefix and not hidden else name)
+                return f"{base} ({', '.join(tag_strs)})" if tag_strs else base
             return base
         return self.type
 

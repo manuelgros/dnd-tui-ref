@@ -49,41 +49,42 @@ class DataLoader:
 
     def _load_spells(self) -> List[Spell]:
         spells: List[Spell] = []
-        sources = ["xphb", "xge", "tce"]
+        spells_dir = self.data_dir / "spells"
+        if not spells_dir.exists():
+            return spells
 
-        for source in sources:
-            file_path = self.data_dir / "spells" / f"spells-{source}.json"
-            if not file_path.exists():
-                continue
+        for file_path in sorted(spells_dir.glob("spells-*.json")):
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for spell_data in data.get("spell", []):
-                    concentration = False
-                    for d in spell_data.get("duration", []):
-                        if isinstance(d, dict) and d.get("concentration"):
-                            concentration = True
-                            break
+            for spell_data in data.get("spell", []):
+                if spell_data.get("source") not in ALLOWED_SOURCES:
+                    continue
+                concentration = False
+                for d in spell_data.get("duration", []):
+                    if isinstance(d, dict) and d.get("concentration"):
+                        concentration = True
+                        break
 
-                    meta = spell_data.get("meta") or {}
-                    ritual = meta.get("ritual", False) if isinstance(meta, dict) else False
+                meta = spell_data.get("meta") or {}
+                ritual = meta.get("ritual", False) if isinstance(meta, dict) else False
 
-                    spells.append(
-                        Spell(
-                            name=spell_data["name"],
-                            source=spell_data["source"],
-                            level=spell_data["level"],
-                            school=spell_data["school"],
-                            time=spell_data["time"],
-                            range=spell_data["range"],
-                            components=spell_data["components"],
-                            duration=spell_data["duration"],
-                            entries=spell_data["entries"],
-                            classes=spell_data.get("classes", {}),
-                            concentration=concentration,
-                            ritual=ritual,
-                            higher_level=spell_data.get("entriesHigherLevel"),
-                        )
+                spells.append(
+                    Spell(
+                        name=spell_data["name"],
+                        source=spell_data["source"],
+                        level=spell_data["level"],
+                        school=spell_data["school"],
+                        time=spell_data["time"],
+                        range=spell_data["range"],
+                        components=spell_data["components"],
+                        duration=spell_data["duration"],
+                        entries=spell_data["entries"],
+                        classes=spell_data.get("classes", {}),
+                        concentration=concentration,
+                        ritual=ritual,
+                        higher_level=spell_data.get("entriesHigherLevel"),
                     )
+                )
 
         return sorted(spells, key=lambda s: (s.level, s.name))
 
