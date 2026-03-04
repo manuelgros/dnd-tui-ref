@@ -66,14 +66,31 @@ parchment = Theme(
     success="#2D6A4F",       # dark forest green
 )
 
-GRIMOIRE_THEMES: list = [classic_dnd, five_etools, arcane, parchment]
+# Gelatinous Cube: dark dungeon black-green, translucent acid-green frame —
+# the ooze that silently digests everything it touches.
+gelatinous_cube = Theme(
+    name="gelatinous-cube",
+    dark=True,
+    primary="#5fa777",       # the cube itself — muted teal-green
+    secondary="#3d7a57",     # deeper dungeon green
+    accent="#5fa777",        # frame/border matches the cube
+    background="#08100b",    # near-black dungeon floor with green undertone
+    surface="#0e1a13",       # dark slimy surface
+    panel="#152218",         # slightly lighter — the cube's walls
+    warning="#b8a030",       # murky gold — treasure glimpsed inside
+    error="#c04848",         # muted red — something dissolved
+    success="#7dd4a0",       # acid-bright mint — successful digestion
+)
+
+GRIMOIRE_THEMES: list = [classic_dnd, five_etools, arcane, parchment, gelatinous_cube]
 
 # Per-theme label colors used in detail views (stat/field labels like "Casting Time:")
 THEME_LABEL_COLORS: dict = {
     "classic-dnd": "#FFB62A",  # D&D Beyond gold — warm, legendary
     "5e-tools":    "#5B8FC9",  # deep steel blue (theme primary)
     "arcane":      "#E8A0F0",  # soft lavender (theme accent)
-    "parchment":   "#9B1C1C",  # deep red ink — matches the sourcebook accent
+    "parchment":        "#9B1C1C",  # deep red ink — matches the sourcebook accent
+    "gelatinous-cube":  "#7dd4a0",  # acid-bright mint — glows against the dark
 }
 
 # Per-theme section header colors (e.g. "Actions", "Traits" in monster stat blocks)
@@ -81,7 +98,8 @@ THEME_SECTION_COLORS: dict = {
     "classic-dnd": "#C5000E",  # D&D Beyond crimson — chapter/section headings
     "5e-tools":    "#5B8FC9",  # primary steel blue
     "arcane":      "#9B59B6",  # amethyst — distinct from the lighter label color
-    "parchment":   "#5C2D0A",  # dark oak brown — ink on parchment
+    "parchment":        "#5C2D0A",  # dark oak brown — ink on parchment
+    "gelatinous-cube":  "#5fa777",  # the cube's own green for section headers
 }
 
 _DEFAULT_LABEL_COLOR = "#5f87ff"    # original blue for all Textual built-in themes
