@@ -167,6 +167,7 @@ class DataLoader:
                             legendary_group_data=self._resolve_legendary_group(
                                 monster_data.get("legendaryGroup"), legendary_groups
                             ),
+                            environment=monster_data.get("environment"),
                         )
                     )
 

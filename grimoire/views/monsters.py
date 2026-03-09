@@ -48,6 +48,35 @@ SIZE_OPTIONS = [
     ("Gargantuan", "G"),
 ]
 
+ENVIRONMENT_OPTIONS = [
+    ("All Environments", None),
+    ("Any", "any"),
+    ("Arctic", "arctic"),
+    ("Coastal", "coastal"),
+    ("Desert", "desert"),
+    ("Forest", "forest"),
+    ("Grassland", "grassland"),
+    ("Hill", "hill"),
+    ("Mountain", "mountain"),
+    ("Swamp", "swamp"),
+    ("Underdark", "underdark"),
+    ("Underwater", "underwater"),
+    ("Urban", "urban"),
+    ("Planar: Abyss", "planar, abyss"),
+    ("Planar: Acheron", "planar, acheron"),
+    ("Planar: Air", "planar, air"),
+    ("Planar: Astral", "planar, astral"),
+    ("Planar: Earth", "planar, earth"),
+    ("Planar: Elemental", "planar, elemental"),
+    ("Planar: Feywild", "planar, feywild"),
+    ("Planar: Fire", "planar, fire"),
+    ("Planar: Limbo", "planar, limbo"),
+    ("Planar: Lower", "planar, lower"),
+    ("Planar: Nine Hells", "planar, nine hells"),
+    ("Planar: Shadowfell", "planar, shadowfell"),
+    ("Planar: Upper", "planar, upper"),
+]
+
 def _build_source_opts(items: List[Any], active_sources: Set[str]) -> list:
     present = {m.source for m in items}
     return [("All Sources", None)] + [
@@ -70,7 +99,7 @@ class MonstersView(BaseListView):
         return Horizontal(
             Select(options=CR_OPTIONS, id="cr_filter", allow_blank=False, value=None),
             Select(options=TYPE_OPTIONS, id="type_filter", allow_blank=False, value=None),
-            Select(options=SIZE_OPTIONS, id="size_filter", allow_blank=False, value=None),
+            Select(options=ENVIRONMENT_OPTIONS, id="env_filter", allow_blank=False, value=None),
             Select(
                 options=_build_source_opts(self.all_items, self._active_sources),
                 id="source_filter",
@@ -148,9 +177,10 @@ class MonstersView(BaseListView):
             selected = type_select.value
             filtered = [m for m in filtered if selected in self._base_types(m)]
 
-        size_select = self.query_one("#size_filter", Select)
-        if size_select.value is not None:
-            filtered = [m for m in filtered if size_select.value in m.size]
+        env_select = self.query_one("#env_filter", Select)
+        if env_select.value is not None and isinstance(env_select.value, str):
+            selected_env = env_select.value
+            filtered = [m for m in filtered if m.environment and selected_env in m.environment]
 
         sort_select = self.query_one("#sort_filter", Select)
         sort_key = sort_select.value or "name"
