@@ -162,6 +162,7 @@ class MonsterDetailScreen(Screen):
             lambda m: _ATKR_MAP.get(m.group(1).strip(), m.group(1)),
             text,
         )
+        text = re.sub(r"\{@h\}", "", text)
         text = re.sub(r"\{@hit ([^}]+)\}", r"+\1", text)
         text = re.sub(r"\{@dc ([^}]+)\}", r"DC \1", text)
         text = re.sub(r"\{@(?:damage|dice) ([^}]+)\}", r"\1", text)
