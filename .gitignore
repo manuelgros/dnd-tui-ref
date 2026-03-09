@@ -20,6 +20,7 @@ venv/
 # Local notes
 CHANGELOG_DRAFT.md
 UPLOAD_FEATURE_PROMPT.md
+CUSTOM_UPLOAD_DEV_LOG.md
 
 # Legacy flat-layout (superseded by grimoire/ package)
 /app.py

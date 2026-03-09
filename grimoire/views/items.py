@@ -37,10 +37,12 @@ RARITY_OPTIONS = [
 ]
 
 def _build_source_opts(items: List[Any], active_sources: Set[str]) -> list:
+    from ..config import get_custom_sources
     present = {i.source for i in items}
+    all_sources = {**SOURCE_FULL, **get_custom_sources()}
     return [("All Sources", None)] + [
         (title, code)
-        for code, title in SOURCE_FULL.items()
+        for code, title in all_sources.items()
         if code in active_sources and code in present
     ]
 

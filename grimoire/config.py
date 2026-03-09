@@ -52,3 +52,28 @@ def is_data_installed() -> bool:
         return False
     data_dir = Path(cfg.get("data_dir", str(get_data_dir())))
     return data_dir.exists()
+
+
+def get_custom_sources() -> dict:
+    """Return the custom_sources dict from config: {source_code: display_name}."""
+    return load_config().get("custom_sources", {})
+
+
+def register_custom_source(code: str, name: str) -> None:
+    """Add a custom source to config and mark it as installed."""
+    cfg = load_config()
+    cfg.setdefault("custom_sources", {})[code] = name
+    installed = set(cfg.get("installed_sources", []))
+    installed.add(code)
+    cfg["installed_sources"] = list(installed)
+    save_config(cfg)
+
+
+def remove_custom_source(code: str) -> None:
+    """Remove a custom source from config and installed_sources."""
+    cfg = load_config()
+    cfg.get("custom_sources", {}).pop(code, None)
+    installed = set(cfg.get("installed_sources", []))
+    installed.discard(code)
+    cfg["installed_sources"] = list(installed)
+    save_config(cfg)

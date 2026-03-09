@@ -5,7 +5,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.widgets import Footer, Header, Input, TabbedContent, TabPane
 
-from .config import load_config, save_config
+from .config import load_config, save_config, get_custom_sources
 from .services import DataLoader, SOURCE_FULL
 from .themes import GRIMOIRE_THEMES
 from .views import SpellsView, MonstersView, ItemsView, FeatsView, RulesView, QuickSearchView, SettingsView
@@ -36,7 +36,7 @@ class GrimoireApp(App):
         for theme in GRIMOIRE_THEMES:
             self.register_theme(theme)
         self.data_dir = data_dir
-        self.data_loader = DataLoader(data_dir)
+        self.data_loader = DataLoader(data_dir, extra_sources=set(get_custom_sources().keys()))
         # When no installed_sources given (e.g. --data-dir mode) treat all known sources as available
         self._installed_sources: Set[str] = installed_sources if installed_sources is not None else set(SOURCE_FULL.keys())
         self.active_sources: set = set(self._installed_sources)
@@ -122,7 +122,7 @@ class GrimoireApp(App):
         """Reload all data after new sources are downloaded or removed via Manage Sources."""
         self._installed_sources = event.installed_sources
         self.active_sources = set(event.installed_sources)
-        self.data_loader = DataLoader(self.data_dir)
+        self.data_loader = DataLoader(self.data_dir, extra_sources=set(get_custom_sources().keys()))
 
         spells = self._filter(self.data_loader.spells)
         monsters = self._filter(self.data_loader.monsters)

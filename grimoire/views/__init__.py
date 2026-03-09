@@ -6,5 +6,11 @@ from .feats import FeatsView
 from .rules import RulesView
 from .quick_search import QuickSearchView
 from .settings import SettingsView
+from .upload_source import UploadSourceScreen
+from .remove_custom_sources import RemoveCustomSourcesScreen
 
-__all__ = ["BaseListView", "SpellsView", "MonstersView", "ItemsView", "FeatsView", "RulesView", "QuickSearchView", "SettingsView"]
+__all__ = [
+    "BaseListView", "SpellsView", "MonstersView", "ItemsView", "FeatsView",
+    "RulesView", "QuickSearchView", "SettingsView",
+    "UploadSourceScreen", "RemoveCustomSourcesScreen",
+]

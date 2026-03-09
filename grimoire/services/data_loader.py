@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Set
 
 from ..models import Spell, Monster, Item, Feat, Rule, cr_to_float
 from .sources import SOURCE_FULL
@@ -9,8 +9,9 @@ ALLOWED_SOURCES = set(SOURCE_FULL.keys())
 
 
 class DataLoader:
-    def __init__(self, data_dir: Path):
+    def __init__(self, data_dir: Path, extra_sources: Set[str] = frozenset()):
         self.data_dir = Path(data_dir)
+        self._allowed = ALLOWED_SOURCES | set(extra_sources)
         self._spells: Optional[List[Spell]] = None
         self._monsters: Optional[List[Monster]] = None
         self._items: Optional[List[Item]] = None
@@ -57,7 +58,7 @@ class DataLoader:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             for spell_data in data.get("spell", []):
-                if spell_data.get("source") not in ALLOWED_SOURCES:
+                if spell_data.get("source") not in self._allowed:
                     continue
                 concentration = False
                 for d in spell_data.get("duration", []):
@@ -89,11 +90,13 @@ class DataLoader:
         return sorted(spells, key=lambda s: (s.level, s.name))
 
     def _load_legendary_groups(self) -> dict:
-        """Return a (name, source) → group dict from all bestiary files."""
+        """Return a (name, source) → group dict from all bestiary legendary group files."""
         groups: dict = {}
         bestiary_dir = self.data_dir / "bestiary"
-        lg_path = bestiary_dir / "legendarygroups.json"
-        if lg_path.exists():
+        if not bestiary_dir.exists():
+            return groups
+        # Glob all legendarygroups*.json (covers legendarygroups.json + legendarygroups-{src}.json)
+        for lg_path in sorted(bestiary_dir.glob("legendarygroups*.json")):
             with open(lg_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
             for g in data.get("legendaryGroup", []):
@@ -123,7 +126,7 @@ class DataLoader:
             with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
                 for monster_data in data.get("monster", []):
-                    if monster_data.get("source") not in ALLOWED_SOURCES:
+                    if monster_data.get("source") not in self._allowed:
                         continue
                     # Skip copy/template stubs that don't have full stat blocks
                     if "_copy" in monster_data or "hp" not in monster_data:
@@ -133,123 +136,135 @@ class DataLoader:
                     if isinstance(size, str):
                         size = [size]
 
-                    monsters.append(
-                        Monster(
-                            name=monster_data["name"],
-                            source=monster_data["source"],
-                            size=size,
-                            type=monster_data.get("type", "unknown"),
-                            alignment=monster_data.get("alignment", []),
-                            ac=monster_data.get("ac", []),
-                            hp=monster_data["hp"],
-                            speed=monster_data["speed"],
-                            str=monster_data["str"],
-                            dex=monster_data["dex"],
-                            con=monster_data["con"],
-                            int=monster_data["int"],
-                            wis=monster_data["wis"],
-                            cha=monster_data["cha"],
-                            cr=monster_data.get("cr"),
-                            save=monster_data.get("save"),
-                            skill=monster_data.get("skill"),
-                            vulnerable=monster_data.get("vulnerable"),
-                            resist=monster_data.get("resist"),
-                            immune=monster_data.get("immune"),
-                            conditionImmune=monster_data.get("conditionImmune"),
-                            senses=monster_data.get("senses"),
-                            languages=monster_data.get("languages"),
-                            trait=monster_data.get("trait"),
-                            action=monster_data.get("action"),
-                            bonus=monster_data.get("bonus"),
-                            reaction=monster_data.get("reaction"),
-                            legendary=monster_data.get("legendary"),
-                            spellcasting=monster_data.get("spellcasting"),
-                            legendary_group_data=self._resolve_legendary_group(
-                                monster_data.get("legendaryGroup"), legendary_groups
-                            ),
-                            environment=monster_data.get("environment"),
+                    try:
+                        monsters.append(
+                            Monster(
+                                name=monster_data["name"],
+                                source=monster_data["source"],
+                                size=size,
+                                type=monster_data.get("type", "unknown"),
+                                alignment=monster_data.get("alignment", []),
+                                ac=monster_data.get("ac", []),
+                                hp=monster_data["hp"],
+                                speed=monster_data.get("speed", {}),
+                                str=monster_data.get("str", 10),
+                                dex=monster_data.get("dex", 10),
+                                con=monster_data.get("con", 10),
+                                int=monster_data.get("int", 10),
+                                wis=monster_data.get("wis", 10),
+                                cha=monster_data.get("cha", 10),
+                                cr=monster_data.get("cr"),
+                                save=monster_data.get("save"),
+                                skill=monster_data.get("skill"),
+                                vulnerable=monster_data.get("vulnerable"),
+                                resist=monster_data.get("resist"),
+                                immune=monster_data.get("immune"),
+                                conditionImmune=monster_data.get("conditionImmune"),
+                                senses=monster_data.get("senses"),
+                                languages=monster_data.get("languages"),
+                                trait=monster_data.get("trait"),
+                                action=monster_data.get("action"),
+                                bonus=monster_data.get("bonus"),
+                                reaction=monster_data.get("reaction"),
+                                legendary=monster_data.get("legendary"),
+                                spellcasting=monster_data.get("spellcasting"),
+                                legendary_group_data=self._resolve_legendary_group(
+                                    monster_data.get("legendaryGroup"), legendary_groups
+                                ),
+                                environment=monster_data.get("environment"),
+                            )
                         )
-                    )
+                    except (KeyError, TypeError):
+                        continue
 
         return sorted(monsters, key=lambda m: m.name)
 
     def _load_items(self) -> List[Item]:
         items: List[Item] = []
 
-        # ── Standard magic items ──────────────────────────────────────────────
-        items_path = self.data_dir / "items.json"
-        if items_path.exists():
+        # ── Standard magic items: items.json + items-{src}.json ──────────────
+        item_files = [self.data_dir / "items.json"] + sorted(
+            f for f in self.data_dir.glob("items-*.json")
+            if not f.name.startswith("items-base")
+        )
+        for items_path in item_files:
+            if not items_path.exists():
+                continue
             with open(items_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for item_data in data.get("item", []):
-                    if item_data.get("source") not in ALLOWED_SOURCES:
-                        continue
-                    items.append(
-                        Item(
-                            name=item_data["name"],
-                            source=item_data["source"],
-                            type=item_data.get("type", "G"),
-                            rarity=item_data.get("rarity", "none"),
-                            entries=item_data.get("entries", []),
-                            tier=item_data.get("tier"),
-                            reqAttune=item_data.get("reqAttune"),
-                            weight=item_data.get("weight"),
-                            value=item_data.get("value"),
-                            weapon=item_data.get("weapon", False),
-                            armor=item_data.get("armor", False),
-                            wondrous=item_data.get("wondrous", False),
-                            poison=item_data.get("poison", False),
-                            poisonTypes=item_data.get("poisonTypes"),
-                            baseItem=item_data.get("baseItem"),
-                        )
+            for item_data in data.get("item", []):
+                if item_data.get("source") not in self._allowed:
+                    continue
+                items.append(
+                    Item(
+                        name=item_data["name"],
+                        source=item_data["source"],
+                        type=item_data.get("type", "G"),
+                        rarity=item_data.get("rarity", "none"),
+                        entries=item_data.get("entries", []),
+                        tier=item_data.get("tier"),
+                        reqAttune=item_data.get("reqAttune"),
+                        weight=item_data.get("weight"),
+                        value=item_data.get("value"),
+                        weapon=item_data.get("weapon", False),
+                        armor=item_data.get("armor", False),
+                        wondrous=item_data.get("wondrous", False),
+                        poison=item_data.get("poison", False),
+                        poisonTypes=item_data.get("poisonTypes"),
+                        baseItem=item_data.get("baseItem"),
                     )
+                )
 
-        # ── Base / mundane items ──────────────────────────────────────────────
+        # ── Base / mundane items: items-base.json ────────────────────────────
         base_path = self.data_dir / "items-base.json"
         if base_path.exists():
             with open(base_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for item_data in data.get("baseitem", []):
-                    if item_data.get("source") not in ALLOWED_SOURCES:
-                        continue
-                    items.append(
-                        Item(
-                            name=item_data["name"],
-                            source=item_data["source"],
-                            type=item_data.get("type", "G"),
-                            rarity=item_data.get("rarity", "none"),
-                            entries=item_data.get("entries", []),
-                            weight=item_data.get("weight"),
-                            value=item_data.get("value"),
-                            weapon=item_data.get("weapon", False),
-                            armor=item_data.get("armor", False),
-                        )
+            for item_data in data.get("baseitem", []):
+                if item_data.get("source") not in self._allowed:
+                    continue
+                items.append(
+                    Item(
+                        name=item_data["name"],
+                        source=item_data["source"],
+                        type=item_data.get("type", "G"),
+                        rarity=item_data.get("rarity", "none"),
+                        entries=item_data.get("entries", []),
+                        weight=item_data.get("weight"),
+                        value=item_data.get("value"),
+                        weapon=item_data.get("weapon", False),
+                        armor=item_data.get("armor", False),
                     )
+                )
 
-        # ── Magic variants ────────────────────────────────────────────────────
-        variants_path = self.data_dir / "magicvariants.json"
-        if variants_path.exists():
+        # ── Magic variants: magicvariants.json + magicvariants-{src}.json ────
+        variant_files = [self.data_dir / "magicvariants.json"] + sorted(
+            self.data_dir.glob("magicvariants-*.json")
+        )
+        for variants_path in variant_files:
+            if not variants_path.exists():
+                continue
             with open(variants_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                for variant in data.get("magicvariant", []):
-                    inh = variant.get("inherits", {})
-                    if inh.get("source") not in ALLOWED_SOURCES:
-                        continue
-                    requires = variant.get("requires", [])
-                    items.append(
-                        Item(
-                            name=variant["name"],
-                            source=inh["source"],
-                            type=self._requires_to_type(requires),
-                            rarity=inh.get("rarity", "none"),
-                            entries=inh.get("entries", []),
-                            tier=inh.get("tier"),
-                            reqAttune=inh.get("reqAttune"),
-                            wondrous=inh.get("wondrous", False),
-                            requires_str=self._requires_to_str(requires),
-                            inherits=inh,
-                        )
+            for variant in data.get("magicvariant", []):
+                inh = variant.get("inherits", {})
+                if inh.get("source") not in self._allowed:
+                    continue
+                requires = variant.get("requires", [])
+                items.append(
+                    Item(
+                        name=variant["name"],
+                        source=inh["source"],
+                        type=self._requires_to_type(requires),
+                        rarity=inh.get("rarity", "none"),
+                        entries=inh.get("entries", []),
+                        tier=inh.get("tier"),
+                        reqAttune=inh.get("reqAttune"),
+                        wondrous=inh.get("wondrous", False),
+                        requires_str=self._requires_to_str(requires),
+                        inherits=inh,
                     )
+                )
 
         return sorted(items, key=lambda i: i.name)
 
@@ -325,16 +340,18 @@ class DataLoader:
 
     def _load_feats(self) -> List[Feat]:
         feats: List[Feat] = []
-        file_path = self.data_dir / "feats.json"
-        if not file_path.exists():
-            return feats
-
-        with open(file_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
+        # Load feats.json + feats-{src}.json for custom sources
+        feat_files = [self.data_dir / "feats.json"] + sorted(
+            self.data_dir.glob("feats-*.json")
+        )
+        for file_path in feat_files:
+            if not file_path.exists():
+                continue
+            with open(file_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
             for feat_data in data.get("feat", []):
-                if feat_data.get("source") not in ALLOWED_SOURCES:
+                if feat_data.get("source") not in self._allowed:
                     continue
-
                 feats.append(
                     Feat(
                         name=feat_data["name"],
@@ -366,14 +383,19 @@ class DataLoader:
                         rule_type="C",
                     ))
 
-        # Conditions, status effects, and diseases from conditionsdiseases.json
-        cd_path = self.data_dir / "conditionsdiseases.json"
-        if cd_path.exists():
+        # Conditions, status effects, and diseases:
+        # conditionsdiseases.json + conditionsdiseases-{src}.json for custom sources
+        cd_files = [self.data_dir / "conditionsdiseases.json"] + sorted(
+            self.data_dir.glob("conditionsdiseases-*.json")
+        )
+        for cd_path in cd_files:
+            if not cd_path.exists():
+                continue
             with open(cd_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             for cond in data.get("condition", []):
-                if cond.get("source") == "XPHB":
+                if cond.get("source") in self._allowed:
                     rules.append(Rule(
                         name=cond["name"],
                         source=cond["source"],
@@ -381,9 +403,8 @@ class DataLoader:
                         rule_type="condition",
                     ))
 
-            # Status effects (Bloodied, Concentration, Surprised) — treat as conditions
             for status in data.get("status", []):
-                if status.get("source") == "XPHB":
+                if status.get("source") in self._allowed:
                     rules.append(Rule(
                         name=status["name"],
                         source=status["source"],
@@ -391,9 +412,8 @@ class DataLoader:
                         rule_type="condition",
                     ))
 
-            # Diseases from ALLOWED_SOURCES
             for disease in data.get("disease", []):
-                if disease.get("source") in ALLOWED_SOURCES:
+                if disease.get("source") in self._allowed:
                     rules.append(Rule(
                         name=disease["name"],
                         source=disease["source"],

@@ -1,10 +1,11 @@
 import json
 from pathlib import Path
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import httpx
 
 from ..config import get_data_dir, load_config, save_config, get_sources_manifest
+from .sources import SOURCE_FULL
 
 
 class DataManager:
@@ -84,3 +85,92 @@ class DataManager:
             progress_cb("", total, total)
 
         self.save_installed_sources(source_ids)
+
+    def import_source(self, json_path: Path) -> Dict:
+        """
+        Parse a monolithic 5etools JSON file, split it into per-type files in data_dir,
+        and return a summary dict with source metadata and content counts.
+
+        Raises ValueError if the file is not a valid 5etools source JSON.
+        """
+        raw = json_path.read_text(encoding="utf-8")
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"Invalid JSON: {e}") from e
+
+        meta = data.get("_meta", {})
+        sources = meta.get("sources", [])
+        if not sources:
+            raise ValueError("No '_meta.sources' found — not a valid 5etools source file.")
+
+        src_info = sources[0]
+        src_code = src_info.get("json")
+        src_name = src_info.get("full") or src_info.get("abbreviation") or src_code
+        if not src_code:
+            raise ValueError("Source code ('json' field) missing from _meta.sources[0].")
+
+        if src_code in SOURCE_FULL:
+            raise ValueError(
+                f"'{src_code}' is an official source already built into Grimoire. "
+                "Use Manage Sources to download it."
+            )
+
+        counts: Dict[str, int] = {}
+
+        # Map of JSON key → (subdirectory or None, filename template, wrapper key for output)
+        type_map = {
+            "spell":        ("spells",   f"spells-{src_code}.json",          "spell"),
+            "monster":      ("bestiary", f"bestiary-{src_code}.json",         "monster"),
+            "legendaryGroup": ("bestiary", f"legendarygroups-{src_code}.json", "legendaryGroup"),
+            "item":         (None,       f"items-{src_code}.json",            "item"),
+            "magicvariant": (None,       f"magicvariants-{src_code}.json",    "magicvariant"),
+            "feat":         (None,       f"feats-{src_code}.json",            "feat"),
+        }
+
+        for key, (subdir, filename, out_key) in type_map.items():
+            entries = data.get(key, [])
+            if not entries:
+                continue
+            dest_dir = (self.data_dir / subdir) if subdir else self.data_dir
+            dest_dir.mkdir(parents=True, exist_ok=True)
+            dest = dest_dir / filename
+            dest.write_text(
+                json.dumps({out_key: entries}, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+            counts[key] = len(entries)
+
+        # Conditions/diseases/status share one output file
+        cd_entries: Dict[str, list] = {}
+        for key in ("condition", "disease", "status"):
+            entries = data.get(key, [])
+            if entries:
+                cd_entries[key] = entries
+                counts[key] = len(entries)
+        if cd_entries:
+            dest = self.data_dir / f"conditionsdiseases-{src_code}.json"
+            dest.write_text(
+                json.dumps(cd_entries, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+
+        if not counts:
+            raise ValueError("No supported content types found in this file.")
+
+        return {"source": src_code, "name": src_name, "counts": counts}
+
+    def remove_source_files(self, src_code: str) -> None:
+        """Delete all split files created for a custom source."""
+        candidates = [
+            self.data_dir / "spells" / f"spells-{src_code}.json",
+            self.data_dir / "bestiary" / f"bestiary-{src_code}.json",
+            self.data_dir / "bestiary" / f"legendarygroups-{src_code}.json",
+            self.data_dir / f"items-{src_code}.json",
+            self.data_dir / f"magicvariants-{src_code}.json",
+            self.data_dir / f"feats-{src_code}.json",
+            self.data_dir / f"conditionsdiseases-{src_code}.json",
+        ]
+        for path in candidates:
+            if path.exists():
+                path.unlink()
