@@ -112,6 +112,9 @@ class SettingsView(Vertical):
                 if idx > 0:
                     buttons[idx - 1].focus()
                 event.stop()
+            elif event.key == "tab":
+                self.app.query_one("Tabs").focus()
+                event.stop()
             elif event.key == "shift+tab":
                 if checkboxes:
                     checkboxes[-1].focus()

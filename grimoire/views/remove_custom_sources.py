@@ -53,10 +53,17 @@ class RemoveCustomSourcesScreen(Screen):
 
     def on_mount(self) -> None:
         if not self._custom_sources:
+            self.query_one("#cancel", Button).focus()
             return
         grid = self.query_one("#source_list")
         for code, name in self._custom_sources.items():
             grid.mount(Checkbox(f"{name} ({code})", id=f"src_{code}", value=False))
+        self.call_after_refresh(self._focus_first)
+
+    def _focus_first(self) -> None:
+        checkboxes = list(self.query("#source_list Checkbox"))
+        if checkboxes:
+            checkboxes[0].focus()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "cancel":
@@ -67,14 +74,28 @@ class RemoveCustomSourcesScreen(Screen):
     def on_key(self, event: events.Key) -> None:
         if event.key == "escape":
             self.dismiss(None)
+            return
 
-        elif event.key in ("up", "down", "left", "right"):
-            focused = self.app.focused
-            checkboxes = list(self.query("#source_list Checkbox"))
-            if not checkboxes or focused not in checkboxes:
-                return
-            if getattr(focused, "_expanded", False):
-                return
+        focused = self.app.focused
+        buttons = list(self.query("#buttons Button"))
+        checkboxes = list(self.query("#source_list Checkbox"))
+
+        # ── Button row: left/right navigation; Tab wraps to checkboxes ──────
+        if focused in buttons:
+            if event.key in ("left", "right"):
+                idx = buttons.index(focused)
+                new_idx = idx + (1 if event.key == "right" else -1)
+                if 0 <= new_idx < len(buttons):
+                    buttons[new_idx].focus()
+                event.stop()
+            elif event.key == "tab":
+                if checkboxes:
+                    checkboxes[0].focus()
+                event.stop()
+            return
+
+        # ── Checkbox grid: arrow navigation ──────────────────────────────
+        if focused in checkboxes and event.key in ("up", "down", "left", "right"):
             idx = checkboxes.index(focused)
             if event.key == "down":
                 new_idx = idx + _COLS

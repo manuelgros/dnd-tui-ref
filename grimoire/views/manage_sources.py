@@ -75,20 +75,30 @@ class ManageSourcesScreen(Screen):
         cancel_btn = self.query_one("#cancel", Button)
         apply_btn = self.query_one("#apply", Button)
 
-        # Left/Right navigate between the two action buttons
+        # Left/Right navigate between the two action buttons; Tab wraps back to checkboxes
+        checkboxes = list(self.query(Checkbox))
         if focused is apply_btn:
             if event.key == "right":
                 cancel_btn.focus()
+                event.stop()
+            elif event.key == "tab":
+                if checkboxes:
+                    checkboxes[0].focus()
+                    checkboxes[0].scroll_visible()
                 event.stop()
             return
         if focused is cancel_btn:
             if event.key == "left":
                 apply_btn.focus()
                 event.stop()
+            elif event.key == "tab":
+                if checkboxes:
+                    checkboxes[0].focus()
+                    checkboxes[0].scroll_visible()
+                event.stop()
             return
 
         # Arrow-key navigation within the checkbox grid
-        checkboxes = list(self.query(Checkbox))
         if focused not in checkboxes:
             return
 

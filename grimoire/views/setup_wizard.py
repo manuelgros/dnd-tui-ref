@@ -79,6 +79,17 @@ class SetupWizardApp(App):
     def on_key(self, event: events.Key) -> None:
         checkboxes = list(self.query(Checkbox))
         focused = self.focused
+
+        # Download button: Tab wraps back to first checkbox
+        download_btn = self.query_one("#download", Button)
+        if focused is download_btn:
+            if event.key == "tab":
+                if checkboxes:
+                    checkboxes[0].focus()
+                    checkboxes[0].scroll_visible()
+                event.stop()
+            return
+
         if focused not in checkboxes:
             return
 
