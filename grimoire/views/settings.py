@@ -188,6 +188,8 @@ class SettingsView(Vertical):
     def _on_sources_managed(self, new_installed: Optional[Set[str]]) -> None:
         if new_installed is None:
             return
+        # Custom sources are always installed (they live in data_dir); merge them back in
+        new_installed = new_installed | set(get_custom_sources().keys())
         self._installed_sources = new_installed
         self._refresh_source_grid()
         self.post_message(self.SourcesInstalled(new_installed))
