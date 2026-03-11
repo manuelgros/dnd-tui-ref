@@ -110,3 +110,10 @@ Button.-success {
     border: tall $success;
     color: $text;
 }
+
+/* Upload Source button uses accent colour — distinct per theme */
+#upload_source {
+    background: $accent;
+    border: tall $accent;
+    color: $background;
+}
