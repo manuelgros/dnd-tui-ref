@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "grimoire5e"
-version = "0.1.0"
+version = "0.2.0"
 description = "D&D 5th Edition reference TUI — spells, monsters, items, feats, and rules in the terminal"
 readme = "README.md"
 license = { text = "MIT" }
